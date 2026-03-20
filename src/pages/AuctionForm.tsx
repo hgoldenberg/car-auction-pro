@@ -85,12 +85,12 @@ export default function AuctionForm() {
     <AppLayout>
       <PageHeader
         title={isEdit ? 'Editar subasta' : 'Nueva subasta'}
-        actions={<Button variant="outline" onClick={() => navigate('/subastas')}>Cancelar</Button>}
+        actions={<Button variant="outline" size="sm" onClick={() => navigate('/subastas')}>Cancelar</Button>}
       />
       <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
-        className="max-w-2xl space-y-6 rounded-lg border bg-card p-6 shadow-card">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2 col-span-2">
+        className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label>Vehículo</Label>
             <Select value={form.vehicle_id} onValueChange={v => handleChange('vehicle_id', v)}>
               <SelectTrigger><SelectValue placeholder="Seleccionar vehículo" /></SelectTrigger>
@@ -103,7 +103,7 @@ export default function AuctionForm() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2 col-span-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label>Título</Label>
             <Input value={form.title} onChange={e => handleChange('title', e.target.value)} required />
           </div>
@@ -135,7 +135,7 @@ export default function AuctionForm() {
             </Select>
           </div>
         </div>
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" className="w-full sm:w-auto" disabled={mutation.isPending}>
           {mutation.isPending ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear subasta')}
         </Button>
       </form>

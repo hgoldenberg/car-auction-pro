@@ -5,8 +5,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { KPICard } from '@/components/KPICard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
-import { Gavel, DollarSign, Users, Car, Clock, Activity } from 'lucide-react';
-import type { AuctionStatus, LeadStatus } from '@/lib/types';
+import { Gavel, DollarSign, Users, Clock, Activity } from 'lucide-react';
+import type { AuctionStatus } from '@/lib/types';
 
 export default function Dashboard() {
   const { data: auctions } = useQuery({
@@ -36,14 +36,6 @@ export default function Dashboard() {
     },
   });
 
-  const { data: vehicles } = useQuery({
-    queryKey: ['vehicles-summary'],
-    queryFn: async () => {
-      const { data } = await supabase.from('vehicles').select('status');
-      return data || [];
-    },
-  });
-
   const { data: activity } = useQuery({
     queryKey: ['activity-recent'],
     queryFn: async () => {
@@ -58,7 +50,6 @@ export default function Dashboard() {
 
   const activeAuctions = auctions?.filter(a => a.status === 'active') || [];
   const closedAuctions = auctions?.filter(a => a.status === 'closed' || a.status === 'awarded') || [];
-  const publishedVehicles = vehicles?.filter(v => v.status === 'published') || [];
   const pendingLeads = leads?.filter(l => l.status === 'new' || l.status === 'interested') || [];
   const closingAuctions = activeAuctions
     .filter(a => a.end_date)
@@ -68,33 +59,17 @@ export default function Dashboard() {
     <AppLayout>
       <PageHeader title="Dashboard" description="Panel de control de subastas" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <KPICard
-          title="Subastas activas"
-          value={activeAuctions.length}
-          icon={<Gavel className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Subastas cerradas"
-          value={closedAuctions.length}
-          icon={<Clock className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Ofertas totales"
-          value={bids || 0}
-          icon={<DollarSign className="h-4 w-4" />}
-        />
-        <KPICard
-          title="Leads pendientes"
-          value={pendingLeads.length}
-          icon={<Users className="h-4 w-4" />}
-        />
+      <div className="grid grid-cols-2 gap-3 mb-6 sm:gap-4 lg:grid-cols-4 lg:mb-8">
+        <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} />
+        <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} />
+        <KPICard title="Ofertas" value={bids || 0} icon={<DollarSign className="h-4 w-4" />} />
+        <KPICard title="Leads" value={pendingLeads.length} icon={<Users className="h-4 w-4" />} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         {/* Próximos cierres */}
         <div className="rounded-lg border bg-card shadow-card">
-          <div className="p-4 border-b">
+          <div className="p-3 border-b sm:p-4">
             <h2 className="text-sm font-semibold">Próximos cierres</h2>
           </div>
           <div className="divide-y">
@@ -104,16 +79,16 @@ export default function Dashboard() {
             {closingAuctions.map((auction) => {
               const vehicle = (auction as any).vehicles;
               return (
-                <div key={auction.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
+                <div key={auction.id} className="p-3 flex items-center justify-between gap-2 sm:p-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
                       {vehicle?.make} {vehicle?.model} {vehicle?.year}
                     </p>
                     <p className="text-xs text-muted-foreground tabular-nums">
-                      Oferta líder: {formatCurrency(auction.current_high_bid)}
+                      Líder: {formatCurrency(auction.current_high_bid)}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-medium tabular-nums text-primary">
                       {timeRemaining(auction.end_date)}
                     </p>
@@ -127,12 +102,12 @@ export default function Dashboard() {
 
         {/* Actividad reciente */}
         <div className="rounded-lg border bg-card shadow-card">
-          <div className="p-4 border-b">
+          <div className="p-3 border-b sm:p-4">
             <h2 className="text-sm font-semibold">Actividad reciente</h2>
           </div>
           <div className="divide-y">
             {activity?.map((entry) => (
-              <div key={entry.id} className="p-4 flex items-start gap-3">
+              <div key={entry.id} className="p-3 flex items-start gap-3 sm:p-4">
                 <Activity className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm">{entry.description}</p>

@@ -27,7 +27,7 @@ export default function ActivityLog() {
 
   return (
     <AppLayout>
-      <PageHeader title="Registro de actividad" description="Historial de acciones del sistema" />
+      <PageHeader title="Actividad" description="Historial de acciones del sistema" />
 
       <div className="rounded-lg border bg-card shadow-card">
         <div className="divide-y">
@@ -35,7 +35,7 @@ export default function ActivityLog() {
           {activity?.map((entry) => {
             const Icon = entityIcons[entry.entity_type] || Activity;
             return (
-              <div key={entry.id} className="p-4 flex items-start gap-3 hover:bg-accent/30 transition-colors duration-150">
+              <div key={entry.id} className="p-3 flex items-start gap-3 sm:p-4">
                 <div className="mt-0.5 h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0">
                   <Icon className="h-4 w-4 text-muted-foreground" />
                 </div>
