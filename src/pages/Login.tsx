@@ -28,7 +28,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center mb-4">
@@ -38,7 +38,7 @@ export default function Login() {
           <p className="text-sm text-muted-foreground mt-1">Panel de administración</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-6 shadow-card">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-card p-5 shadow-card sm:p-6">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -48,6 +48,7 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
+              className="h-11"
             />
           </div>
           <div className="space-y-2">
@@ -59,10 +60,11 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
+              className="h-11"
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full h-11" disabled={loading}>
             {loading ? 'Ingresando...' : 'Ingresar'}
           </Button>
         </form>

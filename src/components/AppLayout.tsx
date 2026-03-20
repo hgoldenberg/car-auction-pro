@@ -1,8 +1,23 @@
 import { ReactNode } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <main className="flex-1 p-4 pb-20 overflow-auto">
+          {children}
+        </main>
+        <MobileBottomNav />
+      </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

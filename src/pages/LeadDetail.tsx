@@ -6,11 +6,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatCurrency, formatDateTime, timeAgo } from '@/lib/formatters';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Phone, Mail, MapPin, MessageSquare } from 'lucide-react';
 import type { LeadStatus, BidStatus } from '@/lib/types';
 
 export default function LeadDetail() {
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const { data: lead } = useQuery({
     queryKey: ['lead', id],
@@ -50,25 +52,25 @@ export default function LeadDetail() {
     <AppLayout>
       <PageHeader title={lead.full_name} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
         {/* Info card */}
-        <div className="rounded-lg border bg-card shadow-card p-5 space-y-4">
+        <div className="rounded-lg border bg-card shadow-card p-4 space-y-4 sm:p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Información</h2>
             <StatusBadge status={lead.status as LeadStatus} />
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-4 w-4" /> {lead.phone || '-'}
+              <Phone className="h-4 w-4 shrink-0" /> {lead.phone || '-'}
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Mail className="h-4 w-4" /> {lead.email || '-'}
+              <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{lead.email || '-'}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MessageSquare className="h-4 w-4" /> {lead.telegram_username || '-'}
+              <MessageSquare className="h-4 w-4 shrink-0" /> {lead.telegram_username || '-'}
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" /> {lead.city || '-'}
+              <MapPin className="h-4 w-4 shrink-0" /> {lead.city || '-'}
             </div>
           </div>
 
@@ -89,35 +91,58 @@ export default function LeadDetail() {
 
         {/* Bids history */}
         <div className="lg:col-span-2 rounded-lg border bg-card shadow-card overflow-hidden">
-          <div className="p-4 border-b">
+          <div className="p-3 border-b sm:p-4">
             <h2 className="text-sm font-semibold">Historial de ofertas</h2>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Subasta</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {isMobile ? (
+            <div className="divide-y">
               {bids?.map((bid) => {
                 const auction = (bid as any).auctions;
                 return (
-                  <TableRow key={bid.id}>
-                    <TableCell className="font-medium text-sm">{auction?.title}</TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">{formatCurrency(bid.amount)}</TableCell>
-                    <TableCell><StatusBadge status={bid.status as BidStatus} /></TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground text-sm">{formatDateTime(bid.created_at)}</TableCell>
-                  </TableRow>
+                  <div key={bid.id} className="p-3 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{auction?.title}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(bid.created_at)}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-medium tabular-nums">{formatCurrency(bid.amount)}</p>
+                      <StatusBadge status={bid.status as BidStatus} />
+                    </div>
+                  </div>
                 );
               })}
               {bids?.length === 0 && (
-                <TableRow><TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Sin ofertas</TableCell></TableRow>
+                <p className="p-4 text-center text-sm text-muted-foreground">Sin ofertas</p>
               )}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Subasta</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Fecha</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bids?.map((bid) => {
+                  const auction = (bid as any).auctions;
+                  return (
+                    <TableRow key={bid.id}>
+                      <TableCell className="font-medium text-sm">{auction?.title}</TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">{formatCurrency(bid.amount)}</TableCell>
+                      <TableCell><StatusBadge status={bid.status as BidStatus} /></TableCell>
+                      <TableCell className="tabular-nums text-muted-foreground text-sm">{formatDateTime(bid.created_at)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+                {bids?.length === 0 && (
+                  <TableRow><TableCell colSpan={4} className="text-center py-4 text-muted-foreground">Sin ofertas</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
     </AppLayout>

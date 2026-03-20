@@ -8,12 +8,15 @@ import { KPICard } from '@/components/KPICard';
 import { formatCurrency, formatDateTime, timeRemaining, timeAgo } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { MobileCard, MobileCardRow } from '@/components/MobileCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { DollarSign, Clock, Users, Send, Edit } from 'lucide-react';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
 
 export default function AuctionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const { data: auction } = useQuery({
     queryKey: ['auction', id],
@@ -61,58 +64,76 @@ export default function AuctionDetail() {
         title={auction.title}
         description={`${vehicle?.make} ${vehicle?.model} ${vehicle?.year} · ${vehicle?.color} · ${vehicle?.km?.toLocaleString('es-AR')} km`}
         actions={
-          <Button variant="outline" onClick={() => navigate(`/subastas/${id}/editar`)}>
+          <Button variant="outline" size={isMobile ? 'sm' : 'default'} onClick={() => navigate(`/subastas/${id}/editar`)}>
             <Edit className="h-4 w-4 mr-1" /> Editar
           </Button>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-4 sm:gap-4 md:grid-cols-4 md:mb-6">
         <KPICard title="Estado" value={auction.status.toUpperCase()} icon={<StatusBadge status={auction.status as AuctionStatus} />} />
         <KPICard title="Oferta líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-4 w-4" />} />
-        <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-4 w-4" />} description={`${uniqueBidders} ofertantes únicos`} />
-        <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-4 w-4" />} description={formatDateTime(auction.end_date)} />
+        <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-4 w-4" />} description={`${uniqueBidders} únicos`} />
+        <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-4 w-4" />} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bids table */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+        {/* Bids */}
         <div className="lg:col-span-2 rounded-lg border bg-card shadow-card overflow-hidden">
-          <div className="p-4 border-b">
+          <div className="p-3 border-b sm:p-4">
             <h2 className="text-sm font-semibold">Historial de ofertas</h2>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ofertante</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {isMobile ? (
+            <div className="divide-y">
               {bids?.map((bid) => {
                 const lead = (bid as any).leads;
                 return (
-                  <TableRow key={bid.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">{lead?.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{lead?.telegram_username}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums font-medium">{formatCurrency(bid.amount)}</TableCell>
-                    <TableCell><StatusBadge status={bid.status as BidStatus} /></TableCell>
-                    <TableCell className="tabular-nums text-muted-foreground text-sm">{timeAgo(bid.created_at)}</TableCell>
-                  </TableRow>
+                  <div key={bid.id} className="p-3 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{lead?.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{lead?.telegram_username}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-medium tabular-nums">{formatCurrency(bid.amount)}</p>
+                      <StatusBadge status={bid.status as BidStatus} />
+                    </div>
+                  </div>
                 );
               })}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Ofertante</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Fecha</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bids?.map((bid) => {
+                  const lead = (bid as any).leads;
+                  return (
+                    <TableRow key={bid.id}>
+                      <TableCell>
+                        <p className="font-medium text-sm">{lead?.full_name}</p>
+                        <p className="text-xs text-muted-foreground">{lead?.telegram_username}</p>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums font-medium">{formatCurrency(bid.amount)}</TableCell>
+                      <TableCell><StatusBadge status={bid.status as BidStatus} /></TableCell>
+                      <TableCell className="tabular-nums text-muted-foreground text-sm">{timeAgo(bid.created_at)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </div>
 
-        {/* Publications sidebar */}
+        {/* Publications */}
         <div className="rounded-lg border bg-card shadow-card">
-          <div className="p-4 border-b">
+          <div className="p-3 border-b sm:p-4">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <Send className="h-4 w-4" /> Publicaciones
             </h2>
@@ -121,9 +142,9 @@ export default function AuctionDetail() {
             {publications?.map((pub) => {
               const group = (pub as any).telegram_groups;
               return (
-                <div key={pub.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{group?.name}</p>
+                <div key={pub.id} className="p-3 flex items-center justify-between sm:p-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{group?.name}</p>
                     <p className="text-xs text-muted-foreground">{pub.published_at ? formatDateTime(pub.published_at) : 'Sin publicar'}</p>
                   </div>
                   <StatusBadge status={pub.status as PublicationStatus} />

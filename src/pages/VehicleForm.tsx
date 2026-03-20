@@ -74,11 +74,11 @@ export default function VehicleForm() {
     <AppLayout>
       <PageHeader
         title={isEdit ? 'Editar vehículo' : 'Nuevo vehículo'}
-        actions={<Button variant="outline" onClick={() => navigate('/vehiculos')}>Cancelar</Button>}
+        actions={<Button variant="outline" size="sm" onClick={() => navigate('/vehiculos')}>Cancelar</Button>}
       />
       <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
-        className="max-w-2xl space-y-6 rounded-lg border bg-card p-6 shadow-card">
-        <div className="grid grid-cols-2 gap-4">
+        className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Marca</Label>
             <Input value={form.make} onChange={e => handleChange('make', e.target.value)} required />
@@ -139,7 +139,7 @@ export default function VehicleForm() {
           <Label>Descripción</Label>
           <Textarea value={form.description} onChange={e => handleChange('description', e.target.value)} rows={3} />
         </div>
-        <Button type="submit" disabled={mutation.isPending}>
+        <Button type="submit" className="w-full sm:w-auto" disabled={mutation.isPending}>
           {mutation.isPending ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Crear vehículo')}
         </Button>
       </form>
