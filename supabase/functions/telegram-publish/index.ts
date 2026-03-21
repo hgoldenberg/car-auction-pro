@@ -119,10 +119,10 @@ Deno.serve(async (req) => {
       `⏰ Cierre: ${closeDateText}`,
     ].filter(Boolean).join('\n');
 
-    // Inline keyboard button
+    // Inline keyboard button with deep link context
     const reply_markup = {
       inline_keyboard: [[
-        { text: '💬 Ofertar en privado', url: 'https://t.me/SubastaPrivadaAutoDemoBot' }
+        { text: '💬 Ofertar en privado', url: `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction_id}` }
       ]]
     };
 
