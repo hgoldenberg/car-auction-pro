@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { TelegramMessage } from './TelegramMessage';
 import { formatCurrency, formatDateTime, timeAgo } from '@/lib/formatters';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Bot, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
