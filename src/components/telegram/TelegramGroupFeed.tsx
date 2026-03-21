@@ -118,7 +118,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
         <div className="space-y-3">
           {feedItems.map((item, idx) => {
             if (item.type === 'publication') {
-              const { auction, vehicle, group } = item.data;
+              const { auction, vehicle, group, imgUrl } = item.data;
               const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
               const text = [
                 `🚗 *SUBASTA ABIERTA*`,
@@ -144,6 +144,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
                     senderName="🤖 SubastaBot"
                     text={text}
                     time={formatDateTime(item.time)}
+                    imageUrl={imgUrl}
                   >
                     {onBidClick && auction.status === 'active' && (
                       <Button
