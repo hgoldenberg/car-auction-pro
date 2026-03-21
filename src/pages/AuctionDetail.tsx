@@ -125,6 +125,8 @@ export default function AuctionDetail() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const { images: vehicleImages, mainImage: vehicleMainImage } = useVehicleImages(auction?.vehicle_id);
+
   if (!auction) return <AppLayout><div className="p-8 text-center text-muted-foreground">Cargando...</div></AppLayout>;
 
   const vehicle = (auction as any).vehicles;
@@ -132,6 +134,7 @@ export default function AuctionDetail() {
   const winningBid = bids?.find(b => b.status === 'winning');
   const leadingBid = bids?.find(b => b.status === 'leading');
   const status = auction.status as AuctionStatus;
+  const mainImageUrl = vehicleMainImage ? getVehicleImageUrl(vehicleMainImage.storage_path) : null;
 
   return (
     <AppLayout>
@@ -144,6 +147,32 @@ export default function AuctionDetail() {
           </Button>
         }
       />
+
+      {/* Vehicle hero image + warning */}
+      {!mainImageUrl && (
+        <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-4 py-3 mb-4 text-sm text-warning-foreground">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+          <span>El vehículo no tiene foto principal. Las publicaciones de Telegram se mostrarán sin imagen.</span>
+        </div>
+      )}
+
+      {mainImageUrl && (
+        <div className="mb-4 rounded-lg overflow-hidden border bg-muted">
+          <img src={mainImageUrl} alt={auction.title} className="w-full h-48 sm:h-64 object-cover" />
+          {vehicleImages.length > 1 && (
+            <div className="flex gap-1 p-2 overflow-x-auto">
+              {vehicleImages.filter(i => !i.is_main).slice(0, 5).map(img => (
+                <img
+                  key={img.id}
+                  src={getVehicleImageUrl(img.storage_path)}
+                  alt="Galería"
+                  className="h-14 w-20 rounded object-cover shrink-0 border"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 mb-4 sm:gap-4 md:grid-cols-4 md:mb-6">
