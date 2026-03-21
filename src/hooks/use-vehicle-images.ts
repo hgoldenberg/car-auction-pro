@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { arrayMove } from '@dnd-kit/sortable';
 
 const BUCKET = 'vehicle-images';
 
@@ -100,6 +101,27 @@ export function useVehicleImages(vehicleId?: string) {
       toast.success('Imagen eliminada');
     },
   });
+  const reorderMutation = useMutation({
+    mutationFn: async ({ activeId, overId }: { activeId: string; overId: string }) => {
+      const oldIndex = images.findIndex((i) => i.id === activeId);
+      const newIndex = images.findIndex((i) => i.id === overId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(images, oldIndex, newIndex);
+      // Optimistic update
+      queryClient.setQueryData(queryKey, reordered);
+
+      // Persist new order
+      const updates = reordered.map((img, idx) =>
+        supabase.from('vehicle_images').update({ display_order: idx }).eq('id', img.id)
+      );
+      await Promise.all(updates);
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey });
+      toast.error('Error al reordenar');
+    },
+  });
 
   return {
     images,
@@ -109,6 +131,7 @@ export function useVehicleImages(vehicleId?: string) {
     isUploading: uploadMutation.isPending,
     setMain: setMainMutation.mutate,
     deleteImage: deleteMutation.mutate,
+    reorder: reorderMutation.mutate,
   };
 }
 

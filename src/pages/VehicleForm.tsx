@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ImagePlus, Star, Trash2, AlertTriangle, Camera } from 'lucide-react';
+import { ImagePlus, AlertTriangle, Camera } from 'lucide-react';
 import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
+import { SortableImageGrid } from '@/components/SortableImageGrid';
 
 export default function VehicleForm() {
   const { id } = useParams();
@@ -38,7 +39,7 @@ export default function VehicleForm() {
     enabled: isEdit,
   });
 
-  const { images, mainImage, upload, isUploading, setMain, deleteImage } = useVehicleImages(id);
+  const { images, mainImage, upload, isUploading, setMain, deleteImage, reorder } = useVehicleImages(id);
 
   useEffect(() => {
     if (vehicle) {
@@ -133,35 +134,14 @@ export default function VehicleForm() {
               </div>
             )}
 
-            {/* Grid of additional images */}
+            {/* Sortable grid of images */}
             {images.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {images.map((img) => (
-                  <div key={img.id} className="relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
-                    <img
-                      src={getVehicleImageUrl(img.storage_path)}
-                      alt="Vehículo"
-                      className="w-full h-full object-cover"
-                    />
-                    {img.is_main && (
-                      <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                        Principal
-                      </span>
-                    )}
-                    {/* Always-visible actions on mobile, hover on desktop */}
-                    <div className="absolute inset-x-0 bottom-0 p-1 flex justify-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent sm:inset-0 sm:bg-black/40 sm:opacity-0 sm:hover:opacity-100 sm:items-center sm:transition-opacity">
-                      {!img.is_main && (
-                        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => setMain(img.id)}>
-                          <Star className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                        </Button>
-                      )}
-                      <Button type="button" size="icon" variant="destructive" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => deleteImage(img)}>
-                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SortableImageGrid
+                images={images}
+                onSetMain={setMain}
+                onDelete={deleteImage}
+                onReorder={(activeId, overId) => reorder({ activeId, overId })}
+              />
             )}
 
             {/* Upload buttons - mobile friendly */}
@@ -183,7 +163,7 @@ export default function VehicleForm() {
                 Cámara
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">La primera imagen se establece como principal. Tocá los íconos en cada foto para cambiar o eliminar.</p>
+            <p className="text-xs text-muted-foreground">Arrastrá las fotos para reordenar. Usá los íconos para cambiar la principal o eliminar.</p>
           </div>
         )}
 
