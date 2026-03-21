@@ -20,7 +20,7 @@ export default function AuctionForm() {
 
   const [form, setForm] = useState({
     vehicle_id: '', title: '', start_date: '', end_date: '',
-    reserve_price: 0, starting_price: 0, status: 'draft' as AuctionStatus,
+    reserve_price: '' as number | '', starting_price: '' as number | '', status: 'draft' as AuctionStatus,
   });
 
   const { data: vehicles } = useQuery({
