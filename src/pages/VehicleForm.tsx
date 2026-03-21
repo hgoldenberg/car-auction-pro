@@ -119,11 +119,25 @@ export default function VehicleForm() {
               <ImagePlus className="h-4 w-4" /> Imágenes del vehículo
             </Label>
 
-            {/* Grid of images */}
+            {/* Main image highlight */}
+            {mainImage && (
+              <div className="relative rounded-lg overflow-hidden border-2 border-primary/30 aspect-video bg-muted">
+                <img
+                  src={getVehicleImageUrl(mainImage.storage_path)}
+                  alt="Foto principal"
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
+                  Foto principal
+                </span>
+              </div>
+            )}
+
+            {/* Grid of additional images */}
             {images.length > 0 && (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {images.map((img) => (
-                  <div key={img.id} className="group relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
+                  <div key={img.id} className="relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
                     <img
                       src={getVehicleImageUrl(img.storage_path)}
                       alt="Vehículo"
@@ -134,14 +148,15 @@ export default function VehicleForm() {
                         Principal
                       </span>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                    {/* Always-visible actions on mobile, hover on desktop */}
+                    <div className="absolute inset-x-0 bottom-0 p-1 flex justify-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent sm:inset-0 sm:bg-black/40 sm:opacity-0 sm:hover:opacity-100 sm:items-center sm:transition-opacity">
                       {!img.is_main && (
-                        <Button type="button" size="icon" variant="secondary" className="h-7 w-7" onClick={() => setMain(img.id)}>
-                          <Star className="h-3.5 w-3.5" />
+                        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => setMain(img.id)}>
+                          <Star className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                         </Button>
                       )}
-                      <Button type="button" size="icon" variant="destructive" className="h-7 w-7" onClick={() => deleteImage(img)}>
-                        <Trash2 className="h-3.5 w-3.5" />
+                      <Button type="button" size="icon" variant="destructive" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => deleteImage(img)}>
+                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                       </Button>
                     </div>
                   </div>
@@ -149,13 +164,26 @@ export default function VehicleForm() {
               </div>
             )}
 
-            {/* Upload button */}
+            {/* Upload buttons - mobile friendly */}
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFileSelect(e.target.files)} />
-            <Button type="button" variant="outline" size="sm" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
-              <ImagePlus className="h-4 w-4 mr-1" />
-              {isUploading ? 'Subiendo...' : 'Agregar imágenes'}
-            </Button>
-            <p className="text-xs text-muted-foreground">La primera imagen subida se establece como principal. Hacé hover para cambiar o eliminar.</p>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="default" className="flex-1 sm:flex-none sm:size-sm" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
+                <ImagePlus className="h-4 w-4 mr-2" />
+                {isUploading ? 'Subiendo...' : 'Galería'}
+              </Button>
+              <Button type="button" variant="outline" size="default" className="flex-1 sm:hidden" disabled={isUploading} onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.capture = 'environment';
+                input.onchange = (e) => handleFileSelect((e.target as HTMLInputElement).files);
+                input.click();
+              }}>
+                <Camera className="h-4 w-4 mr-2" />
+                Cámara
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">La primera imagen se establece como principal. Tocá los íconos en cada foto para cambiar o eliminar.</p>
           </div>
         )}
 
