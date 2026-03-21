@@ -207,6 +207,7 @@ export default function AuctionDetail() {
         )}
         {status === 'active' && (
           <>
+            <TelegramPublishDialog auctionId={id!} auctionTitle={auction.title} auctionStatus={status} />
             <Button size="sm" variant="secondary" className="rounded-lg" onClick={() => setShowBidForm(!showBidForm)}>
               <Plus className="h-4 w-4 mr-1" /> Inyectar oferta
             </Button>
