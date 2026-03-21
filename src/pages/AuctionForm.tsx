@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { AUCTION_STATUS_LABELS } from '@/lib/types';
 import type { AuctionStatus } from '@/lib/types';
+import { CurrencyInput } from '@/components/CurrencyInput';
 
 export default function AuctionForm() {
   const { id } = useParams();
@@ -20,7 +21,7 @@ export default function AuctionForm() {
 
   const [form, setForm] = useState({
     vehicle_id: '', title: '', start_date: '', end_date: '',
-    reserve_price: '' as number | '', starting_price: '' as number | '', status: 'draft' as AuctionStatus,
+    starting_price: '' as number | '', status: 'draft' as AuctionStatus,
   });
 
   const { data: vehicles } = useQuery({
@@ -47,8 +48,7 @@ export default function AuctionForm() {
         vehicle_id: auction.vehicle_id, title: auction.title,
         start_date: auction.start_date?.slice(0, 16) || '',
         end_date: auction.end_date?.slice(0, 16) || '',
-        reserve_price: auction.reserve_price || 0,
-        starting_price: auction.starting_price || 0,
+        starting_price: auction.starting_price || '',
         status: auction.status,
       });
     }
@@ -58,7 +58,6 @@ export default function AuctionForm() {
     mutationFn: async () => {
       const payload = {
         ...form,
-        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
         starting_price: form.starting_price === '' ? 0 : form.starting_price,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
@@ -119,11 +118,7 @@ export default function AuctionForm() {
           </div>
           <div className="space-y-2">
             <Label>Precio inicial</Label>
-            <Input type="number" placeholder="Ingresá un monto" value={form.starting_price} onChange={e => handleChange('starting_price', e.target.value === '' ? '' : +e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Precio reserva</Label>
-            <Input type="number" placeholder="Ingresá un monto" value={form.reserve_price} onChange={e => handleChange('reserve_price', e.target.value === '' ? '' : +e.target.value)} />
+            <CurrencyInput value={form.starting_price} onChange={v => handleChange('starting_price', v)} />
           </div>
           <div className="space-y-2">
             <Label>Estado</Label>

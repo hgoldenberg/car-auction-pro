@@ -15,6 +15,7 @@ import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { SortableImageGrid } from '@/components/SortableImageGrid';
+import { CurrencyInput } from '@/components/CurrencyInput';
 
 export default function VehicleForm() {
   const { id } = useParams();
@@ -23,10 +24,14 @@ export default function VehicleForm() {
   const isEdit = !!id;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Pending image for create mode (before vehicle is saved)
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+
   const [form, setForm] = useState({
     make: '', model: '', year: new Date().getFullYear(), trim: '', vin: '',
     km: '' as number | '', color: '', transmission: '', fuel_type: '', doors: 4 as number | '',
-    description: '', reserve_price: '' as number | '', status: 'draft' as VehicleStatus,
+    description: '', status: 'draft' as VehicleStatus,
   });
 
   const { data: vehicle } = useQuery({
@@ -46,10 +51,10 @@ export default function VehicleForm() {
       setForm({
         make: vehicle.make, model: vehicle.model, year: vehicle.year,
         trim: vehicle.trim || '', vin: vehicle.vin || '',
-        km: vehicle.km || 0, color: vehicle.color || '',
+        km: vehicle.km || '', color: vehicle.color || '',
         transmission: vehicle.transmission || '', fuel_type: vehicle.fuel_type || '',
         doors: vehicle.doors || 4, description: vehicle.description || '',
-        reserve_price: vehicle.reserve_price || 0, status: vehicle.status,
+        status: vehicle.status,
       });
     }
   }, [vehicle]);
@@ -60,7 +65,6 @@ export default function VehicleForm() {
         ...form,
         km: form.km === '' ? 0 : form.km,
         doors: form.doors === '' ? 4 : form.doors,
-        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
       };
       if (isEdit) {
         const { error } = await supabase.from('vehicles').update(payload).eq('id', id);
@@ -68,6 +72,20 @@ export default function VehicleForm() {
       } else {
         const { data, error } = await supabase.from('vehicles').insert(payload).select('id').single();
         if (error) throw error;
+        // Upload pending image after vehicle creation
+        if (pendingImage && data) {
+          const ext = pendingImage.name.split('.').pop();
+          const path = `${data.id}/${Date.now()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from('vehicle-images').upload(path, pendingImage);
+          if (!uploadErr) {
+            await supabase.from('vehicle_images').insert({
+              vehicle_id: data.id,
+              storage_path: path,
+              is_main: true,
+              display_order: 0,
+            });
+          }
+        }
         return data;
       }
     },
@@ -87,6 +105,13 @@ export default function VehicleForm() {
     Array.from(files).forEach((file, idx) => {
       upload({ file, isMain: !hasMain && idx === 0 });
     });
+  };
+
+  const handlePendingImage = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    setPendingImage(file);
+    setPendingPreview(URL.createObjectURL(file));
   };
 
   const handleChange = (field: string, value: any) => {
@@ -113,7 +138,7 @@ export default function VehicleForm() {
       <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
         className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
 
-        {/* Image section (only in edit mode) */}
+        {/* Image section - EDIT mode */}
         {isEdit && (
           <div className="space-y-3">
             <Label className="flex items-center gap-2">
@@ -167,10 +192,62 @@ export default function VehicleForm() {
           </div>
         )}
 
+        {/* Image section - CREATE mode */}
         {!isEdit && (
-          <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-            <ImagePlus className="h-6 w-6 mx-auto mb-2 opacity-50" />
-            Guardá el vehículo primero para subir imágenes.
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <ImagePlus className="h-4 w-4" /> Foto principal
+            </Label>
+            {pendingPreview ? (
+              <div className="relative rounded-lg overflow-hidden border-2 border-primary/30 aspect-video bg-muted">
+                <img src={pendingPreview} alt="Preview" className="w-full h-full object-cover" />
+                <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
+                  Foto principal
+                </span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="absolute bottom-2 right-2"
+                  onClick={() => { setPendingImage(null); setPendingPreview(null); }}
+                >
+                  Cambiar
+                </Button>
+              </div>
+            ) : (
+              <div
+                className="rounded-lg border-2 border-dashed border-muted-foreground/25 p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Tocá para agregar la foto principal</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Podés agregar más fotos después de guardar</p>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={e => handlePendingImage(e.target.files)}
+            />
+            {!pendingPreview && (
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="default" className="flex-1 sm:flex-none" onClick={() => fileInputRef.current?.click()}>
+                  <ImagePlus className="h-4 w-4 mr-2" /> Galería
+                </Button>
+                <Button type="button" variant="outline" size="default" className="flex-1 sm:hidden" onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.capture = 'environment';
+                  input.onchange = (e) => handlePendingImage((e.target as HTMLInputElement).files);
+                  input.click();
+                }}>
+                  <Camera className="h-4 w-4 mr-2" /> Cámara
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -197,7 +274,7 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Kilómetros</Label>
-            <Input type="number" placeholder="Ej: 45000" value={form.km} onChange={e => handleChange('km', e.target.value === '' ? '' : +e.target.value)} />
+            <CurrencyInput placeholder="Ej: 45000" value={form.km} onChange={v => handleChange('km', v)} />
           </div>
           <div className="space-y-2">
             <Label>Color</Label>
@@ -214,10 +291,6 @@ export default function VehicleForm() {
           <div className="space-y-2">
             <Label>Puertas</Label>
             <Input type="number" placeholder="Ej: 4" value={form.doors} onChange={e => handleChange('doors', e.target.value === '' ? '' : +e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Precio reserva</Label>
-            <Input type="number" placeholder="Ingresá un monto" value={form.reserve_price} onChange={e => handleChange('reserve_price', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Estado</Label>
