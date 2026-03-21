@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
+
 import { StatusBadge } from '@/components/StatusBadge';
 import { KPICard } from '@/components/KPICard';
 import { formatCurrency, formatDateTime, timeRemaining, timeAgo } from '@/lib/formatters';
