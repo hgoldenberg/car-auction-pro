@@ -1,4 +1,4 @@
-import { LayoutDashboard, Car, Gavel, Users, Activity, Send } from 'lucide-react';
+import { LayoutDashboard, Car, Gavel, Users, Activity } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,7 @@ const navItems = [
 
 export function MobileBottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-card border-t safe-area-bottom">
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-card/95 backdrop-blur-md border-t safe-area-bottom">
       <div className="flex items-stretch justify-around h-16">
         {navItems.map((item) => (
           <NavLink
@@ -21,13 +21,29 @@ export function MobileBottomNav() {
             end={item.url === '/'}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center gap-0.5 flex-1 text-muted-foreground transition-colors duration-150 active:scale-95',
-                isActive && 'text-primary'
+                'flex flex-col items-center justify-center gap-1 flex-1 transition-colors duration-150 active:scale-95',
+                isActive
+                  ? 'text-primary'
+                  : 'text-muted-foreground/70'
               )
             }
           >
-            <item.icon className="h-5 w-5" />
-            <span className="text-[10px] font-medium leading-tight">{item.title}</span>
+            {({ isActive }) => (
+              <>
+                <div className={cn(
+                  'flex items-center justify-center w-10 h-7 rounded-full transition-colors',
+                  isActive && 'bg-accent'
+                )}>
+                  <item.icon className="h-[18px] w-[18px]" />
+                </div>
+                <span className={cn(
+                  'text-[10px] leading-tight',
+                  isActive ? 'font-semibold' : 'font-medium'
+                )}>
+                  {item.title}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>

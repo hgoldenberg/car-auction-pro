@@ -142,7 +142,7 @@ export default function AuctionDetail() {
         title={auction.title}
         description={vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year} · ${vehicle.color || ''} · ${vehicle.km?.toLocaleString('es-AR') || '-'} km` : ''}
         actions={
-          <Button variant="outline" size={isMobile ? 'sm' : 'default'} onClick={() => navigate(`/subastas/${id}/editar`)}>
+          <Button variant="outline" size={isMobile ? 'sm' : 'default'} className="rounded-lg" onClick={() => navigate(`/subastas/${id}/editar`)}>
             <Edit className="h-4 w-4 mr-1" /> Editar
           </Button>
         }
@@ -150,23 +150,23 @@ export default function AuctionDetail() {
 
       {/* Vehicle hero image + warning */}
       {!mainImageUrl && (
-        <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-4 py-3 mb-4 text-sm text-warning-foreground">
+        <div className="flex items-center gap-2 rounded-xl border border-warning bg-warning/10 px-4 py-3 mb-5 text-sm text-warning-foreground">
           <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
           <span>El vehículo no tiene foto principal. Las publicaciones de Telegram se mostrarán sin imagen.</span>
         </div>
       )}
 
       {mainImageUrl && (
-        <div className="mb-4 rounded-lg overflow-hidden border bg-muted">
-          <img src={mainImageUrl} alt={auction.title} className="w-full h-48 sm:h-64 object-cover" />
+        <div className="mb-5 rounded-xl overflow-hidden border bg-muted shadow-card">
+          <img src={mainImageUrl} alt={auction.title} className="w-full h-48 sm:h-72 object-cover" />
           {vehicleImages.length > 1 && (
-            <div className="flex gap-1 p-2 overflow-x-auto">
+            <div className="flex gap-1.5 p-2.5 overflow-x-auto bg-card">
               {vehicleImages.filter(i => !i.is_main).slice(0, 5).map(img => (
                 <img
                   key={img.id}
                   src={getVehicleImageUrl(img.storage_path)}
                   alt="Galería"
-                  className="h-14 w-20 rounded object-cover shrink-0 border"
+                  className="h-16 w-24 rounded-lg object-cover shrink-0 border hover:opacity-80 transition-opacity cursor-pointer"
                 />
               ))}
             </div>
@@ -175,7 +175,7 @@ export default function AuctionDetail() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 mb-4 sm:gap-4 md:grid-cols-4 md:mb-6">
+      <div className="grid grid-cols-2 gap-3 mb-5 sm:gap-4 md:grid-cols-4 md:mb-6">
         <KPICard title="Estado" value={auction.status.toUpperCase()} icon={<StatusBadge status={status} />} />
         <KPICard title="Oferta líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-4 w-4" />} />
         <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-4 w-4" />} description={`${uniqueBidders} oferentes`} />
@@ -183,33 +183,33 @@ export default function AuctionDetail() {
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-5">
         {['draft', 'scheduled', 'paused'].includes(status) && (
-          <Button size="sm" onClick={() => actionMutation.mutate('activate')} disabled={actionMutation.isPending}>
+          <Button size="sm" className="rounded-lg" onClick={() => actionMutation.mutate('activate')} disabled={actionMutation.isPending}>
             <Play className="h-4 w-4 mr-1" /> Activar
           </Button>
         )}
         {status === 'active' && (
-          <Button size="sm" variant="outline" onClick={() => actionMutation.mutate('pause')} disabled={actionMutation.isPending}>
+          <Button size="sm" variant="outline" className="rounded-lg" onClick={() => actionMutation.mutate('pause')} disabled={actionMutation.isPending}>
             <Pause className="h-4 w-4 mr-1" /> Pausar
           </Button>
         )}
         {['active', 'paused'].includes(status) && (
-          <Button size="sm" variant="outline" onClick={() => actionMutation.mutate('close')} disabled={actionMutation.isPending}>
+          <Button size="sm" variant="outline" className="rounded-lg" onClick={() => actionMutation.mutate('close')} disabled={actionMutation.isPending}>
             <XCircle className="h-4 w-4 mr-1" /> Cerrar
           </Button>
         )}
         {status === 'closed' && (
-          <Button size="sm" onClick={() => actionMutation.mutate('award')} disabled={actionMutation.isPending}>
+          <Button size="sm" className="rounded-lg" onClick={() => actionMutation.mutate('award')} disabled={actionMutation.isPending}>
             <Award className="h-4 w-4 mr-1" /> Adjudicar
           </Button>
         )}
         {status === 'active' && (
           <>
-            <Button size="sm" variant="secondary" onClick={() => setShowBidForm(!showBidForm)}>
+            <Button size="sm" variant="secondary" className="rounded-lg" onClick={() => setShowBidForm(!showBidForm)}>
               <Plus className="h-4 w-4 mr-1" /> Inyectar oferta
             </Button>
-            <Button size="sm" variant="secondary" className="bg-telegram/10 text-telegram hover:bg-telegram/20" onClick={() => setShowChat(!showChat)}>
+            <Button size="sm" variant="secondary" className="rounded-lg bg-telegram/10 text-telegram hover:bg-telegram/20" onClick={() => setShowChat(!showChat)}>
               <MessageSquare className="h-4 w-4 mr-1" /> Chat demo
             </Button>
           </>
@@ -218,22 +218,22 @@ export default function AuctionDetail() {
 
       {/* Dummy bid form */}
       {showBidForm && (
-        <div className="rounded-lg border bg-card shadow-card p-4 mb-4 max-w-md space-y-3">
+        <div className="rounded-xl border bg-card shadow-elevated p-5 mb-5 max-w-md space-y-4">
           <h3 className="text-sm font-semibold">Inyectar oferta demo</h3>
           <div className="space-y-2">
-            <Label className="text-xs">Lead</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Lead</Label>
             <Select value={bidLeadId} onValueChange={setBidLeadId}>
-              <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Seleccionar lead" /></SelectTrigger>
+              <SelectTrigger className="h-10 text-sm rounded-lg"><SelectValue placeholder="Seleccionar lead" /></SelectTrigger>
               <SelectContent>
                 {leads?.map(l => <SelectItem key={l.id} value={l.id}>{l.full_name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Monto (ARS)</Label>
-            <Input type="number" value={bidAmount} onChange={e => setBidAmount(e.target.value)} className="h-9 text-sm" />
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Monto (ARS)</Label>
+            <Input type="number" value={bidAmount} onChange={e => setBidAmount(e.target.value)} className="h-10 text-sm rounded-lg" />
           </div>
-          <Button size="sm" onClick={() => bidMutation.mutate()} disabled={!bidLeadId || !bidAmount || bidMutation.isPending}>
+          <Button size="sm" className="rounded-lg" onClick={() => bidMutation.mutate()} disabled={!bidLeadId || !bidAmount || bidMutation.isPending}>
             Registrar oferta
           </Button>
         </div>
@@ -241,14 +241,14 @@ export default function AuctionDetail() {
 
       {/* Tabbed content */}
       <Tabs defaultValue="ranking" className="space-y-4">
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="ranking" className="gap-1.5 text-xs sm:text-sm">
+        <TabsList className="flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="ranking" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <BarChart3 className="h-3.5 w-3.5" /> Ranking
           </TabsTrigger>
-          <TabsTrigger value="telegram" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="telegram" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <Send className="h-3.5 w-3.5" /> Telegram
           </TabsTrigger>
-          <TabsTrigger value="detail" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="detail" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <DollarSign className="h-3.5 w-3.5" /> Detalle
           </TabsTrigger>
         </TabsList>
@@ -256,9 +256,9 @@ export default function AuctionDetail() {
         {/* ── Ranking tab ── */}
         <TabsContent value="ranking">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
-            <div className="lg:col-span-2 rounded-lg border bg-card shadow-card overflow-hidden">
-              <div className="p-3 border-b sm:p-4">
-                <h2 className="text-sm font-semibold">Ranking de ofertas</h2>
+            <div className="lg:col-span-2 section-card">
+              <div className="section-card-header">
+                <h2 className="section-card-title">Ranking de ofertas</h2>
               </div>
               {isMobile ? (
                 <div className="divide-y">

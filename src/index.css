@@ -12,56 +12,56 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 20% 97%;
+    --foreground: 224 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 224 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 224 47% 11%;
 
     --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 20% 95%;
+    --secondary-foreground: 224 47% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 243 75% 97%;
+    --accent-foreground: 243 75% 35%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
     --ring: 243 75% 59%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
+    --sidebar-foreground: 224 47% 11%;
     --sidebar-primary: 243 75% 59%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-accent: 243 75% 97%;
+    --sidebar-accent-foreground: 243 75% 35%;
+    --sidebar-border: 220 13% 92%;
     --sidebar-ring: 243 75% 59%;
 
     /* Status colors */
-    --status-success: 142 76% 36%;
-    --status-success-bg: 142 76% 95%;
+    --status-success: 152 69% 31%;
+    --status-success-bg: 152 69% 95%;
     --status-warning: 38 92% 50%;
     --status-warning-bg: 38 92% 95%;
-    --status-danger: 0 84% 60%;
-    --status-danger-bg: 0 84% 95%;
+    --status-danger: 0 72% 51%;
+    --status-danger-bg: 0 72% 95%;
     --status-info: 217 91% 60%;
-    --status-info-bg: 217 91% 95%;
-    --status-neutral: 215 16% 47%;
-    --status-neutral-bg: 210 40% 96%;
+    --status-info-bg: 217 91% 96%;
+    --status-neutral: 220 9% 46%;
+    --status-neutral-bg: 220 14% 94%;
 
     /* Warning */
     --warning: 38 92% 50%;
@@ -71,10 +71,10 @@
     --telegram: 200 80% 45%;
     --telegram-bg: 200 20% 97%;
 
-    /* Shadows */
-    --shadow-sm: 0 0 0 1px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.05);
-    --shadow-md: 0 0 0 1px rgba(0,0,0,.05), 0 2px 4px rgba(0,0,0,.05);
-    --shadow-lg: 0 0 0 1px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.08);
+    /* Shadows — softer and more layered */
+    --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.04);
+    --shadow-md: 0 2px 8px -2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+    --shadow-lg: 0 8px 24px -8px rgba(0,0,0,.1), 0 0 0 1px rgba(0,0,0,.04);
   }
 
   * {
@@ -85,10 +85,37 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Tabular numbers for prices and dates */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Smoother scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better focus rings */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+@layer components {
+  /* Section card with consistent styling */
+  .section-card {
+    @apply rounded-xl border bg-card shadow-card overflow-hidden;
+  }
+
+  .section-card-header {
+    @apply px-4 py-3 border-b sm:px-5 sm:py-4;
+  }
+
+  .section-card-title {
+    @apply text-sm font-semibold tracking-tight;
   }
 }

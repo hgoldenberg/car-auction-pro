@@ -12,8 +12,8 @@ export function MobileCard({ onClick, children, className }: MobileCardProps) {
     <div
       onClick={onClick}
       className={cn(
-        'rounded-lg border bg-card p-4 shadow-card active:scale-[0.98] transition-transform duration-150',
-        onClick && 'cursor-pointer',
+        'rounded-xl border bg-card p-4 shadow-card active:scale-[0.98] transition-all duration-150',
+        onClick && 'cursor-pointer hover:shadow-elevated',
         className
       )}
     >
@@ -30,8 +30,8 @@ interface MobileCardRowProps {
 
 export function MobileCardRow({ label, children, className }: MobileCardRowProps) {
   return (
-    <div className={cn('flex items-center justify-between text-sm', className)}>
-      <span className="text-muted-foreground">{label}</span>
+    <div className={cn('flex items-center justify-between text-sm py-0.5', className)}>
+      <span className="text-muted-foreground text-xs">{label}</span>
       <span className="font-medium text-right">{children}</span>
     </div>
   );

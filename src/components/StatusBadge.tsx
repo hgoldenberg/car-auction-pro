@@ -62,7 +62,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     <Badge
       variant="secondary"
       className={cn(
-        'font-medium text-xs border-0',
+        'font-semibold text-[10px] uppercase tracking-wider border-0 px-2 py-0.5',
         statusColorMap[status] || 'bg-status-neutral-bg text-status-neutral',
         className
       )}

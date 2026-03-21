@@ -86,7 +86,7 @@ export default function Vehicles() {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border bg-card shadow-card overflow-hidden">
+        <div className="section-card">
           <Table>
             <TableHeader>
               <TableRow>
