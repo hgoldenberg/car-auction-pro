@@ -30,6 +30,13 @@ export default function TelegramGroups() {
     setChatAuction({ id: auctionId, title });
   };
 
+  // Auto-scroll to chat on mobile when opening
+  useEffect(() => {
+    if (chatAuction && isMobile && chatRef.current) {
+      setTimeout(() => chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }, [chatAuction, isMobile]);
+
   return (
     <AppLayout>
       <PageHeader title="Grupos Telegram" description="Grupos configurados y feed demo de publicaciones" />
