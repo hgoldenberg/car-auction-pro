@@ -14,12 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3 } from 'lucide-react';
+import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle, ImageOff } from 'lucide-react';
 import { ACTIVITY_ACTIONS } from '@/lib/types';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
 import { activateAuction, pauseAuction, closeAuction, awardAuction, submitBid } from '@/lib/auction-actions';
 import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
+import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { toast } from 'sonner';
 
 export default function AuctionDetail() {
