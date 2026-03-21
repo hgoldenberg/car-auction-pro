@@ -256,9 +256,9 @@ export default function AuctionDetail() {
         {/* ── Ranking tab ── */}
         <TabsContent value="ranking">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
-            <div className="lg:col-span-2 rounded-lg border bg-card shadow-card overflow-hidden">
-              <div className="p-3 border-b sm:p-4">
-                <h2 className="text-sm font-semibold">Ranking de ofertas</h2>
+            <div className="lg:col-span-2 section-card">
+              <div className="section-card-header">
+                <h2 className="section-card-title">Ranking de ofertas</h2>
               </div>
               {isMobile ? (
                 <div className="divide-y">

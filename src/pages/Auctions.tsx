@@ -65,7 +65,7 @@ export default function Auctions() {
           })}
         </div>
       ) : (
-        <div className="rounded-lg border bg-card shadow-card overflow-hidden">
+        <div className="section-card">
           <Table>
             <TableHeader>
               <TableRow>
