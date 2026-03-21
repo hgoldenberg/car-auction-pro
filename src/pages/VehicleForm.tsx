@@ -134,35 +134,14 @@ export default function VehicleForm() {
               </div>
             )}
 
-            {/* Grid of additional images */}
+            {/* Sortable grid of images */}
             {images.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {images.map((img) => (
-                  <div key={img.id} className="relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
-                    <img
-                      src={getVehicleImageUrl(img.storage_path)}
-                      alt="Vehículo"
-                      className="w-full h-full object-cover"
-                    />
-                    {img.is_main && (
-                      <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                        Principal
-                      </span>
-                    )}
-                    {/* Always-visible actions on mobile, hover on desktop */}
-                    <div className="absolute inset-x-0 bottom-0 p-1 flex justify-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent sm:inset-0 sm:bg-black/40 sm:opacity-0 sm:hover:opacity-100 sm:items-center sm:transition-opacity">
-                      {!img.is_main && (
-                        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => setMain(img.id)}>
-                          <Star className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                        </Button>
-                      )}
-                      <Button type="button" size="icon" variant="destructive" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => deleteImage(img)}>
-                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SortableImageGrid
+                images={images}
+                onSetMain={setMain}
+                onDelete={deleteImage}
+                onReorder={(activeId, overId) => reorder({ activeId, overId })}
+              />
             )}
 
             {/* Upload buttons - mobile friendly */}
