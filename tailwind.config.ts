@@ -69,6 +69,10 @@ export default {
           neutral: "hsl(var(--status-neutral))",
           "neutral-bg": "hsl(var(--status-neutral-bg))",
         },
+        telegram: {
+          DEFAULT: "hsl(var(--telegram))",
+          bg: "hsl(var(--telegram-bg))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
