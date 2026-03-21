@@ -1,11 +1,12 @@
 import { cn } from '@/lib/utils';
 import { Bot, User } from 'lucide-react';
 
-interface TelegramMessageProps {
+export interface TelegramMessageProps {
   sender: 'bot' | 'user';
   senderName?: string;
   text: string;
   time: string;
+  imageUrl?: string | null;
   children?: React.ReactNode;
 }
 
