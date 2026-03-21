@@ -100,22 +100,31 @@ Deno.serve(async (req) => {
     // Build message text
     const formatARS = (n: number | null) => n ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n) : '-';
 
-    const text = [
-      `🚗 *SUBASTA ABIERTA*`,
-      ``,
-      `📋 *${vehicleTitle}*`,
-      vehicle?.trim ? `   Versión: ${vehicle.trim}` : '',
-      vehicle?.color ? `   Color: ${vehicle.color}` : '',
-      vehicle?.km ? `   KM: ${vehicle.km.toLocaleString('es-AR')}` : '',
-      ``,
-      `💰 Precio inicial: ${formatARS(auction.starting_price)}`,
-      auction.current_high_bid > 0 ? `🏆 Oferta líder: ${formatARS(auction.current_high_bid)}` : '',
-      auction.bid_count > 0 ? `📊 Ofertas: ${auction.bid_count}` : '',
-      ``,
-      `⏰ Cierre: ${auction.end_date ? new Date(auction.end_date).toLocaleString('es-AR') : 'Por definir'}`,
-      ``,
-      `💬 Para ofertar, escribí al bot en privado.`,
+    const closeDateText = auction.end_date
+      ? new Date(auction.end_date).toLocaleString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+      : 'Sin fecha definida';
+
+    const lines = [
+      `🚗 *${vehicleTitle}*`,
+      vehicle?.trim ? `${vehicle.trim}` : '',
+      '',
+      [
+        vehicle?.km ? `📏 ${vehicle.km.toLocaleString('es-AR')} km` : '',
+        vehicle?.color ? `🎨 ${vehicle.color}` : '',
+      ].filter(Boolean).join('  ·  '),
+      '',
+      `💰 Inicio: ${formatARS(auction.starting_price)}`,
+      auction.current_high_bid > 0 ? `🏆 Líder: ${formatARS(auction.current_high_bid)}` : '',
+      auction.bid_count > 0 ? `📊 ${auction.bid_count} oferta${auction.bid_count > 1 ? 's' : ''}` : '',
+      `⏰ Cierre: ${closeDateText}`,
     ].filter(Boolean).join('\n');
+
+    // Inline keyboard button
+    const reply_markup = {
+      inline_keyboard: [[
+        { text: '💬 Ofertar en privado', url: `https://t.me/${Deno.env.get('TELEGRAM_BOT_USERNAME') || 'SubastaPrivadaBot'}` }
+      ]]
+    };
 
     const results: Array<{ group_id: string; group_name: string; success: boolean; message_id?: number; error?: string }> = [];
 
@@ -130,7 +139,6 @@ Deno.serve(async (req) => {
         let tgData;
 
         if (photoUrl) {
-          // sendPhoto
           tgResponse = await fetch(`${GATEWAY_URL}/sendPhoto`, {
             method: 'POST',
             headers: {
@@ -141,12 +149,12 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
               chat_id: group.chat_id,
               photo: photoUrl,
-              caption: text,
+              caption: lines,
               parse_mode: 'Markdown',
+              reply_markup,
             }),
           });
         } else {
-          // sendMessage
           tgResponse = await fetch(`${GATEWAY_URL}/sendMessage`, {
             method: 'POST',
             headers: {
@@ -156,8 +164,9 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               chat_id: group.chat_id,
-              text: text,
+              text: lines,
               parse_mode: 'Markdown',
+              reply_markup,
             }),
           });
         }

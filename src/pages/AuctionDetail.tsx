@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
-import { PageHeader } from '@/components/PageHeader';
+
 import { StatusBadge } from '@/components/StatusBadge';
 import { KPICard } from '@/components/KPICard';
 import { formatCurrency, formatDateTime, timeRemaining, timeAgo } from '@/lib/formatters';
@@ -139,48 +139,73 @@ export default function AuctionDetail() {
 
   return (
     <AppLayout>
-      <PageHeader
-        title={auction.title}
-        description={vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year} · ${vehicle.color || ''} · ${vehicle.km?.toLocaleString('es-AR') || '-'} km` : ''}
-        actions={
-          <Button variant="outline" size={isMobile ? 'sm' : 'default'} className="rounded-lg" onClick={() => navigate(`/subastas/${id}/editar`)}>
-            <Edit className="h-4 w-4 mr-1" /> Editar
-          </Button>
-        }
-      />
-
-      {/* Vehicle hero image + warning */}
-      {!mainImageUrl && (
-        <div className="flex items-center gap-2 rounded-xl border border-warning bg-warning/10 px-4 py-3 mb-5 text-sm text-warning-foreground">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
-          <span>El vehículo no tiene foto principal. Las publicaciones de Telegram se mostrarán sin imagen.</span>
-        </div>
-      )}
-
-      {mainImageUrl && (
-        <div className="mb-5 rounded-xl overflow-hidden border bg-muted shadow-card">
-          <img src={mainImageUrl} alt={auction.title} className="w-full h-48 sm:h-72 object-cover" />
-          {vehicleImages.length > 1 && (
-            <div className="flex gap-1.5 p-2.5 overflow-x-auto bg-card">
-              {vehicleImages.filter(i => !i.is_main).slice(0, 5).map(img => (
-                <img
-                  key={img.id}
-                  src={getVehicleImageUrl(img.storage_path)}
-                  alt="Galería"
-                  className="h-16 w-24 rounded-lg object-cover shrink-0 border hover:opacity-80 transition-opacity cursor-pointer"
-                />
-              ))}
+      {/* Compact hero header */}
+      <div className="flex flex-col gap-4 pb-5 sm:pb-6">
+        <div className="flex gap-3 sm:gap-4 items-start">
+          {/* Thumbnail */}
+          {mainImageUrl ? (
+            <div className="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-muted shadow-card">
+              <img src={mainImageUrl} alt={auction.title} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-xl border bg-muted/50 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-muted-foreground/40" />
             </div>
           )}
-        </div>
-      )}
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 mb-5 sm:gap-4 md:grid-cols-4 md:mb-6">
-        <KPICard title="Estado" value={auction.status.toUpperCase()} icon={<StatusBadge status={status} />} />
-        <KPICard title="Oferta líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-4 w-4" />} />
-        <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-4 w-4" />} description={`${uniqueBidders} oferentes`} />
-        <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-4 w-4" />} />
+          {/* Title + meta */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <StatusBadge status={status} />
+              {winningBid && <span className="text-xs font-medium text-primary">🏆 Adjudicada</span>}
+            </div>
+            <h1 className="text-lg font-bold tracking-tight sm:text-xl leading-tight truncate">{auction.title}</h1>
+            {vehicle && (
+              <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                {vehicle.make} {vehicle.model} {vehicle.year} · {vehicle.color || ''} · {vehicle.km?.toLocaleString('es-AR') || '-'} km
+              </p>
+            )}
+            <div className="flex items-center gap-3 mt-2 text-sm">
+              <span className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</span>
+              <span className="text-muted-foreground tabular-nums">{auction.bid_count || 0} ofertas</span>
+              <span className="text-muted-foreground tabular-nums">{timeRemaining(auction.end_date)}</span>
+            </div>
+          </div>
+
+          {/* Edit button */}
+          <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-9 w-9" onClick={() => navigate(`/subastas/${id}/editar`)}>
+            <Edit className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Gallery strip */}
+        {vehicleImages.length > 1 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mt-1">
+            {vehicleImages.filter(i => !i.is_main).slice(0, 6).map(img => (
+              <img
+                key={img.id}
+                src={getVehicleImageUrl(img.storage_path)}
+                alt="Galería"
+                className="h-12 w-18 sm:h-14 sm:w-20 rounded-lg object-cover shrink-0 border hover:opacity-80 transition-opacity cursor-pointer"
+              />
+            ))}
+          </div>
+        )}
+
+        {!mainImageUrl && (
+          <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
+            <span>Sin foto principal — las publicaciones se mostrarán sin imagen.</span>
+          </div>
+        )}
+      </div>
+
+      {/* KPIs - compact row */}
+      <div className="grid grid-cols-4 gap-2 mb-4 sm:gap-3 sm:mb-5">
+        <KPICard title="Inicio" value={formatCurrency(auction.starting_price)} icon={<DollarSign className="h-3.5 w-3.5" />} />
+        <KPICard title="Líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-3.5 w-3.5" />} />
+        <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-3.5 w-3.5" />} description={`${uniqueBidders} oferentes`} />
+        <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-3.5 w-3.5" />} />
       </div>
 
       {/* Action buttons */}
