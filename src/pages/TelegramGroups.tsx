@@ -87,8 +87,9 @@ export default function TelegramGroups() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Chat ID</TableHead>
+                     <TableHead>Nombre</TableHead>
+                     <TableHead>Tipo</TableHead>
+                     <TableHead>Chat ID</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-center">Miembros</TableHead>
                     <TableHead>Estado</TableHead>
