@@ -372,7 +372,6 @@ export default function AuctionDetail() {
                   <p className="text-xs mt-1">
                     Disponible cuando la subasta esté activa
                   </p>
-                  </p>
                 </div>
               )}
             </div>
