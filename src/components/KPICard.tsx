@@ -11,13 +11,16 @@ interface KPICardProps {
 
 export function KPICard({ title, value, icon, description, className }: KPICardProps) {
   return (
-    <div className={cn('rounded-lg border bg-card p-3 shadow-card sm:p-5', className)}>
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground sm:text-sm">{title}</p>
-        <div className="text-muted-foreground">{icon}</div>
+    <div className={cn(
+      'rounded-xl border bg-card p-3.5 shadow-card transition-shadow hover:shadow-elevated sm:p-5',
+      className
+    )}>
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider sm:text-[11px]">{title}</p>
+        <div className="text-muted-foreground/60">{icon}</div>
       </div>
-      <p className="mt-1.5 text-xl font-semibold tracking-tight tabular-nums sm:mt-2 sm:text-2xl">{value}</p>
-      {description && <p className="mt-0.5 text-[10px] text-muted-foreground sm:mt-1 sm:text-xs">{description}</p>}
+      <p className="text-2xl font-bold tracking-tight tabular-nums sm:text-3xl">{value}</p>
+      {description && <p className="mt-1 text-[11px] text-muted-foreground sm:mt-1.5 sm:text-xs">{description}</p>}
     </div>
   );
 }

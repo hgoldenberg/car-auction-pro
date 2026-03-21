@@ -1,8 +1,8 @@
 import {
-  LayoutDashboard, Car, Gavel, Users, MessageSquare, Activity, LogOut, Send,
+  LayoutDashboard, Car, Gavel, Users, Activity, LogOut, Send,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -23,7 +23,6 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
@@ -36,14 +35,23 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="px-3 py-4">
+          <SidebarGroupLabel className="px-3 py-5">
             {!collapsed && (
-              <div className="flex items-center gap-2">
-                <Gavel className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-sm tracking-tight">Subasta Privada</span>
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                  <Gavel className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div className="min-w-0">
+                  <span className="font-bold text-sm tracking-tight block">Subasta Privada</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">Telegram Edition</span>
+                </div>
               </div>
             )}
-            {collapsed && <Gavel className="h-5 w-5 text-primary mx-auto" />}
+            {collapsed && (
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
+                <Gavel className="h-4 w-4 text-primary-foreground" />
+              </div>
+            )}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -53,8 +61,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === '/'}
-                      className="hover:bg-accent/50 transition-colors duration-150"
-                      activeClassName="bg-accent text-primary font-medium"
+                      className="hover:bg-accent/60 transition-colors duration-150 rounded-lg"
+                      activeClassName="bg-accent text-accent-foreground font-semibold"
                     >
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -71,7 +79,7 @@ export function AppSidebar() {
           variant="ghost"
           size={collapsed ? 'icon' : 'default'}
           onClick={handleSignOut}
-          className="w-full justify-start text-muted-foreground hover:text-destructive"
+          className="w-full justify-start text-muted-foreground hover:text-destructive rounded-lg"
         >
           <LogOut className="h-4 w-4" />
           {!collapsed && <span className="ml-2">Cerrar sesión</span>}
