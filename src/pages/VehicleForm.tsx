@@ -163,7 +163,7 @@ export default function VehicleForm() {
                 Cámara
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">La primera imagen se establece como principal. Tocá los íconos en cada foto para cambiar o eliminar.</p>
+            <p className="text-xs text-muted-foreground">Arrastrá las fotos para reordenar. Usá los íconos para cambiar la principal o eliminar.</p>
           </div>
         )}
 
