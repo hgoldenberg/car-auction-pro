@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
@@ -16,6 +16,7 @@ export default function TelegramGroups() {
   const isMobile = useIsMobile();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [chatAuction, setChatAuction] = useState<{ id: string; title: string } | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['telegram-groups'],
@@ -28,6 +29,13 @@ export default function TelegramGroups() {
   const handleBidClick = (auctionId: string, title: string) => {
     setChatAuction({ id: auctionId, title });
   };
+
+  // Auto-scroll to chat on mobile when opening
+  useEffect(() => {
+    if (chatAuction && isMobile && chatRef.current) {
+      setTimeout(() => chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }, [chatAuction, isMobile]);
 
   return (
     <AppLayout>
@@ -146,7 +154,7 @@ export default function TelegramGroups() {
             </div>
 
             {/* Bot chat */}
-            <div className="lg:h-full flex flex-col min-h-0">
+            <div ref={chatRef} className="lg:h-full flex flex-col min-h-0">
               {chatAuction ? (
                 <TelegramBotChat
                   auctionId={chatAuction.id}
