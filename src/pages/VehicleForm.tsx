@@ -209,7 +209,7 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Precio reserva</Label>
-            <Input type="number" value={form.reserve_price} onChange={e => handleChange('reserve_price', +e.target.value)} />
+            <Input type="number" placeholder="Ingresá un monto" value={form.reserve_price} onChange={e => handleChange('reserve_price', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Estado</Label>
