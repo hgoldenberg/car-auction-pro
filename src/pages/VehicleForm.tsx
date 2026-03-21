@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,14 +10,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ImagePlus, Star, Trash2, AlertTriangle } from 'lucide-react';
 import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
+import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 
 export default function VehicleForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isEdit = !!id;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     make: '', model: '', year: new Date().getFullYear(), trim: '', vin: '',
@@ -34,6 +37,8 @@ export default function VehicleForm() {
     },
     enabled: isEdit,
   });
+
+  const { images, mainImage, upload, isUploading, setMain, deleteImage } = useVehicleImages(id);
 
   useEffect(() => {
     if (vehicle) {
@@ -54,21 +59,34 @@ export default function VehicleForm() {
         const { error } = await supabase.from('vehicles').update(form).eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('vehicles').insert(form);
+        const { data, error } = await supabase.from('vehicles').insert(form).select('id').single();
         if (error) throw error;
+        return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       toast.success(isEdit ? 'Vehículo actualizado' : 'Vehículo creado');
-      navigate('/vehiculos');
+      if (!isEdit && data) {
+        navigate(`/vehiculos/${data.id}`);
+      }
     },
     onError: () => toast.error('Error al guardar'),
   });
 
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || !id) return;
+    const hasMain = !!mainImage;
+    Array.from(files).forEach((file, idx) => {
+      upload({ file, isMain: !hasMain && idx === 0 });
+    });
+  };
+
   const handleChange = (field: string, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
+
+  const noMainImage = isEdit && !mainImage && !isUploading;
 
   return (
     <AppLayout>
@@ -76,8 +94,72 @@ export default function VehicleForm() {
         title={isEdit ? 'Editar vehículo' : 'Nuevo vehículo'}
         actions={<Button variant="outline" size="sm" onClick={() => navigate('/vehiculos')}>Cancelar</Button>}
       />
+
+      {/* Warning: no main image */}
+      {noMainImage && (
+        <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-4 py-3 mb-4 text-sm text-warning-foreground">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+          <span>Este vehículo no tiene foto principal. Subí al menos una imagen para poder publicar correctamente una subasta.</span>
+        </div>
+      )}
+
       <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
         className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
+
+        {/* Image section (only in edit mode) */}
+        {isEdit && (
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <ImagePlus className="h-4 w-4" /> Imágenes del vehículo
+            </Label>
+
+            {/* Grid of images */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {images.map((img) => (
+                  <div key={img.id} className="group relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
+                    <img
+                      src={getVehicleImageUrl(img.storage_path)}
+                      alt="Vehículo"
+                      className="w-full h-full object-cover"
+                    />
+                    {img.is_main && (
+                      <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded">
+                        Principal
+                      </span>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                      {!img.is_main && (
+                        <Button type="button" size="icon" variant="secondary" className="h-7 w-7" onClick={() => setMain(img.id)}>
+                          <Star className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      <Button type="button" size="icon" variant="destructive" className="h-7 w-7" onClick={() => deleteImage(img)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload button */}
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFileSelect(e.target.files)} />
+            <Button type="button" variant="outline" size="sm" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
+              <ImagePlus className="h-4 w-4 mr-1" />
+              {isUploading ? 'Subiendo...' : 'Agregar imágenes'}
+            </Button>
+            <p className="text-xs text-muted-foreground">La primera imagen subida se establece como principal. Hacé hover para cambiar o eliminar.</p>
+          </div>
+        )}
+
+        {!isEdit && (
+          <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+            <ImagePlus className="h-6 w-6 mx-auto mb-2 opacity-50" />
+            Guardá el vehículo primero para subir imágenes.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Marca</Label>
