@@ -16,6 +16,7 @@ export default function TelegramGroups() {
   const isMobile = useIsMobile();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [chatAuction, setChatAuction] = useState<{ id: string; title: string } | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['telegram-groups'],
