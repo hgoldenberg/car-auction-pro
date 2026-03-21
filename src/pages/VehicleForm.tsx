@@ -205,7 +205,7 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Puertas</Label>
-            <Input type="number" value={form.doors} onChange={e => handleChange('doors', +e.target.value)} />
+            <Input type="number" placeholder="Ej: 4" value={form.doors} onChange={e => handleChange('doors', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Precio reserva</Label>
