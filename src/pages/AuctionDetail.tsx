@@ -419,11 +419,21 @@ export default function AuctionDetail() {
             <div className="divide-y">
               {publications?.map((pub) => {
                 const group = (pub as any).telegram_groups;
+                const isReal = (pub as any).publication_type === 'real';
                 return (
                   <div key={pub.id} className="p-3 flex items-center justify-between sm:p-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{group?.name}</p>
-                      <p className="text-xs text-muted-foreground">{pub.published_at ? formatDateTime(pub.published_at) : 'Sin publicar'}</p>
+                      <p className="text-sm font-medium truncate">
+                        {group?.name}
+                        {isReal && <span className="ml-1.5 text-xs text-telegram font-normal">· Real</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {pub.published_at ? formatDateTime(pub.published_at) : 'Sin publicar'}
+                        {(pub as any).external_message_id && ` · msg#${(pub as any).external_message_id}`}
+                      </p>
+                      {(pub as any).error_message && (
+                        <p className="text-xs text-destructive mt-0.5">{(pub as any).error_message}</p>
+                      )}
                     </div>
                     <StatusBadge status={pub.status as PublicationStatus} />
                   </div>
