@@ -330,6 +330,61 @@ async function findOrCreateLead(supabase: any, telegramUser: any, chatId: number
   return newLead;
 }
 
+// ── Group notification helper ───────────────────────────────────
+
+async function notifyGroups(
+  supabase: any, auctionId: string, vehicleTitle: string, amount: number,
+  bidCount: number, endDate: string | null, lovableKey: string, telegramKey: string
+) {
+  try {
+    const { data: publications } = await supabase
+      .from('auction_group_publications')
+      .select('group_id, telegram_groups(chat_id, is_active, is_real_group)')
+      .eq('auction_id', auctionId)
+      .eq('status', 'posted')
+      .eq('publication_type', 'real');
+
+    if (!publications || publications.length === 0) return;
+
+    const formatARS = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
+
+    const closingText = endDate
+      ? `⏰ Cierre: ${new Date(endDate).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })} ${new Date(endDate).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`
+      : '';
+
+    const text = [
+      `🔔 *Nueva oferta líder*`,
+      '',
+      `🚗 ${vehicleTitle}`,
+      `💰 ${formatARS(amount)}`,
+      `📊 ${bidCount} oferta${bidCount > 1 ? 's' : ''}`,
+      closingText,
+    ].filter(Boolean).join('\n');
+
+    for (const pub of publications) {
+      const group = pub.telegram_groups;
+      if (!group?.chat_id || !group.is_active || !group.is_real_group) continue;
+
+      await sendTelegramToGroup(Number(group.chat_id), text, lovableKey, telegramKey);
+    }
+  } catch (e) {
+    console.error('Error notifying groups:', e);
+  }
+}
+
+async function sendTelegramToGroup(chatId: number, text: string, lovableKey: string, telegramKey: string) {
+  const response = await fetch(`${GATEWAY_URL}/sendMessage`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${lovableKey}`,
+      'X-Connection-Api-Key': telegramKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+  });
+  return response.json();
+}
+
 // ── Telegram send helper ────────────────────────────────────────
 
 async function sendTelegram(chatId: number, text: string, lovableKey: string, telegramKey: string, parseMode?: string) {
