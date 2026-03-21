@@ -58,6 +58,8 @@ export default function AuctionForm() {
     mutationFn: async () => {
       const payload = {
         ...form,
+        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
+        starting_price: form.starting_price === '' ? 0 : form.starting_price,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
       };
