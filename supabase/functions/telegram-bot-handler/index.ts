@@ -285,6 +285,9 @@ async function handleBid(
     `Podés enviar un nuevo monto para mejorar tu oferta.`,
   ].join('\n'), lovableKey, telegramKey);
 
+  // Notify groups with active publications
+  await notifyGroups(supabase, auctionId, vehicleTitle, amount, (auction.bid_count || 0) + 1, auction.end_date, lovableKey, telegramKey);
+
   return jsonResponse({ ok: true, action: 'bid_created', bid_id: newBid.id, amount });
 }
 
