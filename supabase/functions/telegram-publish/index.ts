@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
     // Inline keyboard button
     const reply_markup = {
       inline_keyboard: [[
-        { text: '💬 Ofertar en privado', url: 'https://t.me/SubastaPrivadaAutoBot' }
+        { text: '💬 Ofertar en privado', url: 'https://t.me/SubastaPrivadaAutoDemoBot' }
       ]]
     };
 
