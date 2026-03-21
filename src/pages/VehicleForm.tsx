@@ -189,7 +189,7 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Kilómetros</Label>
-            <Input type="number" value={form.km} onChange={e => handleChange('km', +e.target.value)} />
+            <Input type="number" placeholder="Ej: 45000" value={form.km} onChange={e => handleChange('km', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Color</Label>
