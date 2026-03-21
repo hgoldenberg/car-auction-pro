@@ -5,7 +5,6 @@ import {
   VEHICLE_STATUS_LABELS, AUCTION_STATUS_LABELS, BID_STATUS_LABELS,
   LEAD_STATUS_LABELS, PUBLICATION_STATUS_LABELS,
 } from '@/lib/types';
-import { forwardRef } from 'react';
 
 type StatusType = VehicleStatus | AuctionStatus | BidStatus | LeadStatus | PublicationStatus;
 
@@ -58,22 +57,17 @@ interface StatusBadgeProps {
   className?: string;
 }
 
-export const StatusBadge = forwardRef<HTMLDivElement, StatusBadgeProps>(
-  ({ status, className }, ref) => {
-    return (
-      <Badge
-        ref={ref}
-        variant="secondary"
-        className={cn(
-          'font-semibold text-[10px] uppercase tracking-wider border-0 px-2 py-0.5',
-          statusColorMap[status] || 'bg-status-neutral-bg text-status-neutral',
-          className
-        )}
-      >
-        {allLabels[status] || status}
-      </Badge>
-    );
-  }
-);
-
-StatusBadge.displayName = 'StatusBadge';
+export function StatusBadge({ status, className }: StatusBadgeProps) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        'font-semibold text-[10px] uppercase tracking-wider border-0 px-2 py-0.5',
+        statusColorMap[status] || 'bg-status-neutral-bg text-status-neutral',
+        className
+      )}
+    >
+      {allLabels[status] || status}
+    </Badge>
+  );
+}
