@@ -220,7 +220,7 @@ export default function AuctionDetail() {
                 )}
                 <div className="flex items-center gap-3 mt-2 text-sm">
                   <span className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</span>
-                  <span className="text-muted-foreground tabular-nums">{auction.bid_count || 0} ofertas</span>
+                  <span className="text-muted-foreground tabular-nums">{auction.bid_count ? `${auction.bid_count} ofertas` : '-'}</span>
                   <span className="text-muted-foreground tabular-nums">{timeRemaining(auction.end_date)}</span>
                 </div>
               </div>
