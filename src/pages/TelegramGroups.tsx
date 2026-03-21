@@ -58,19 +58,26 @@ export default function TelegramGroups() {
           {isLoading && <p className="text-center py-8 text-muted-foreground">Cargando...</p>}
           {isMobile ? (
             <div className="space-y-3">
-              {groups?.map((g) => (
+              {groups?.map((g: any) => (
                 <MobileCard key={g.id} onClick={() => { setSelectedGroupId(g.id); }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Send className="h-4 w-4 text-primary shrink-0" />
                       <p className="font-medium text-sm">{g.name}</p>
+                      {g.is_real_group && <Badge variant="outline" className="text-xs text-telegram border-telegram/30">Real</Badge>}
                     </div>
-                    <Badge variant={g.is_active ? 'default' : 'secondary'}
-                      className={g.is_active ? 'bg-status-success-bg text-status-success border-0' : ''}>
-                      {g.is_active ? 'Activo' : 'Inactivo'}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant={g.is_active ? 'default' : 'secondary'}
+                        className={g.is_active ? 'bg-status-success-bg text-status-success border-0' : ''}>
+                        {g.is_active ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setEditingGroup(g); }}>
+                        <Settings className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   {g.description && <p className="text-xs text-muted-foreground mb-2">{g.description}</p>}
+                  <MobileCardRow label="Chat ID">{g.chat_id || '—'}</MobileCardRow>
                   <MobileCardRow label="Miembros">{g.member_count?.toLocaleString('es-AR')}</MobileCardRow>
                 </MobileCard>
               ))}
