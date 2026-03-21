@@ -55,11 +55,17 @@ export default function VehicleForm() {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const payload = {
+        ...form,
+        km: form.km === '' ? 0 : form.km,
+        doors: form.doors === '' ? 4 : form.doors,
+        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
+      };
       if (isEdit) {
-        const { error } = await supabase.from('vehicles').update(form).eq('id', id);
+        const { error } = await supabase.from('vehicles').update(payload).eq('id', id);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from('vehicles').insert(form).select('id').single();
+        const { data, error } = await supabase.from('vehicles').insert(payload).select('id').single();
         if (error) throw error;
         return data;
       }
