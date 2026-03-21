@@ -39,7 +39,7 @@ export default function VehicleForm() {
     enabled: isEdit,
   });
 
-  const { images, mainImage, upload, isUploading, setMain, deleteImage } = useVehicleImages(id);
+  const { images, mainImage, upload, isUploading, setMain, deleteImage, reorder } = useVehicleImages(id);
 
   useEffect(() => {
     if (vehicle) {
