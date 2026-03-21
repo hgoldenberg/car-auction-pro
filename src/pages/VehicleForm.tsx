@@ -24,8 +24,8 @@ export default function VehicleForm() {
 
   const [form, setForm] = useState({
     make: '', model: '', year: new Date().getFullYear(), trim: '', vin: '',
-    km: 0, color: '', transmission: '', fuel_type: '', doors: 4,
-    description: '', reserve_price: 0, status: 'draft' as VehicleStatus,
+    km: '' as number | '', color: '', transmission: '', fuel_type: '', doors: 4 as number | '',
+    description: '', reserve_price: '' as number | '', status: 'draft' as VehicleStatus,
   });
 
   const { data: vehicle } = useQuery({
