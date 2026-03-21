@@ -139,69 +139,122 @@ export default function AuctionDetail() {
 
   return (
     <AppLayout>
-      {/* Compact hero header */}
-      <div className="flex flex-col gap-4 pb-5 sm:pb-6">
-        <div className="flex gap-3 sm:gap-4 items-start">
-          {/* Thumbnail */}
-          {mainImageUrl ? (
-            <div className="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-xl overflow-hidden border bg-muted shadow-card">
-              <img src={mainImageUrl} alt={auction.title} className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <div className="shrink-0 w-20 h-20 sm:w-28 sm:h-28 rounded-xl border bg-muted/50 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-muted-foreground/40" />
-            </div>
-          )}
-
-          {/* Title + meta */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <StatusBadge status={status} />
-              {winningBid && <span className="text-xs font-medium text-primary">🏆 Adjudicada</span>}
-            </div>
-            <h1 className="text-lg font-bold tracking-tight sm:text-xl leading-tight truncate">{auction.title}</h1>
-            {vehicle && (
-              <p className="text-sm text-muted-foreground mt-0.5 truncate">
-                {vehicle.make} {vehicle.model} {vehicle.year} · {vehicle.color || ''} · {vehicle.km?.toLocaleString('es-AR') || '-'} km
-              </p>
+      {/* ── Hero header ── */}
+      <div className="pb-4 sm:pb-6">
+        {/* Mobile: stacked layout */}
+        {isMobile ? (
+          <div className="space-y-3">
+            {/* Image + badge */}
+            {mainImageUrl ? (
+              <div className="relative rounded-xl overflow-hidden aspect-[16/9] bg-muted shadow-card -mx-1">
+                <img src={mainImageUrl} alt={auction.title} className="w-full h-full object-cover" />
+                <div className="absolute top-2 left-2">
+                  <StatusBadge status={status} />
+                </div>
+                {winningBid && (
+                  <span className="absolute top-2 right-2 text-xs font-medium bg-primary text-primary-foreground px-2 py-0.5 rounded">🏆 Adjudicada</span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 rounded-xl border bg-muted/50 p-4">
+                <AlertTriangle className="h-5 w-5 text-muted-foreground/40" />
+                <span className="text-sm text-muted-foreground">Sin foto principal</span>
+                <div className="ml-auto"><StatusBadge status={status} /></div>
+              </div>
             )}
-            <div className="flex items-center gap-3 mt-2 text-sm">
-              <span className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</span>
-              <span className="text-muted-foreground tabular-nums">{auction.bid_count || 0} ofertas</span>
-              <span className="text-muted-foreground tabular-nums">{timeRemaining(auction.end_date)}</span>
+
+            {/* Title + vehicle info */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold tracking-tight leading-tight">{auction.title}</h1>
+                {vehicle && (
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    {vehicle.make} {vehicle.model} {vehicle.year} · {vehicle.color || ''} · {vehicle.km ? `${vehicle.km.toLocaleString('es-AR')} km` : ''}
+                  </p>
+                )}
+              </div>
+              <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-9 w-9" onClick={() => navigate(`/subastas/${id}/editar`)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Key metrics inline */}
+            <div className="flex items-center gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground text-xs">Líder</span>
+                <p className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Ofertas</span>
+                <p className="font-semibold tabular-nums">{auction.bid_count || 0}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground text-xs">Cierre</span>
+                <p className="font-semibold tabular-nums">{timeRemaining(auction.end_date)}</p>
+              </div>
             </div>
           </div>
+        ) : (
+          /* Desktop: horizontal layout */
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-start">
+              {mainImageUrl ? (
+                <div className="shrink-0 w-28 h-28 rounded-xl overflow-hidden border bg-muted shadow-card">
+                  <img src={mainImageUrl} alt={auction.title} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="shrink-0 w-28 h-28 rounded-xl border bg-muted/50 flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-muted-foreground/40" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <StatusBadge status={status} />
+                  {winningBid && <span className="text-xs font-medium text-primary">🏆 Adjudicada</span>}
+                </div>
+                <h1 className="text-xl font-bold tracking-tight leading-tight truncate">{auction.title}</h1>
+                {vehicle && (
+                  <p className="text-sm text-muted-foreground mt-0.5 truncate">
+                    {vehicle.make} {vehicle.model} {vehicle.year} · {vehicle.color || ''} · {vehicle.km ? `${vehicle.km.toLocaleString('es-AR')} km` : ''}
+                  </p>
+                )}
+                <div className="flex items-center gap-3 mt-2 text-sm">
+                  <span className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</span>
+                  <span className="text-muted-foreground tabular-nums">{auction.bid_count || 0} ofertas</span>
+                  <span className="text-muted-foreground tabular-nums">{timeRemaining(auction.end_date)}</span>
+                </div>
+              </div>
+              <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-9 w-9" onClick={() => navigate(`/subastas/${id}/editar`)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            </div>
 
-          {/* Edit button */}
-          <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-9 w-9" onClick={() => navigate(`/subastas/${id}/editar`)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-        </div>
+            {/* Gallery strip */}
+            {vehicleImages.length > 1 && (
+              <div className="flex gap-1.5 overflow-x-auto pb-1 -mt-1">
+                {vehicleImages.filter(i => !i.is_main).slice(0, 6).map(img => (
+                  <img
+                    key={img.id}
+                    src={getVehicleImageUrl(img.storage_path)}
+                    alt="Galería"
+                    className="h-14 w-20 rounded-lg object-cover shrink-0 border hover:opacity-80 transition-opacity cursor-pointer"
+                  />
+                ))}
+              </div>
+            )}
 
-        {/* Gallery strip */}
-        {vehicleImages.length > 1 && (
-          <div className="flex gap-1.5 overflow-x-auto pb-1 -mt-1">
-            {vehicleImages.filter(i => !i.is_main).slice(0, 6).map(img => (
-              <img
-                key={img.id}
-                src={getVehicleImageUrl(img.storage_path)}
-                alt="Galería"
-                className="h-12 w-18 sm:h-14 sm:w-20 rounded-lg object-cover shrink-0 border hover:opacity-80 transition-opacity cursor-pointer"
-              />
-            ))}
-          </div>
-        )}
-
-        {!mainImageUrl && (
-          <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
-            <span>Sin foto principal — las publicaciones se mostrarán sin imagen.</span>
+            {!mainImageUrl && (
+              <div className="flex items-center gap-2 rounded-lg border border-warning bg-warning/10 px-3 py-2 text-xs text-warning-foreground">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" />
+                <span>Sin foto principal — las publicaciones se mostrarán sin imagen.</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* KPIs - compact row */}
-      <div className="grid grid-cols-4 gap-2 mb-4 sm:gap-3 sm:mb-5">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-2 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-5">
         <KPICard title="Inicio" value={formatCurrency(auction.starting_price)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-3.5 w-3.5" />} description={`${uniqueBidders} oferentes`} />
@@ -268,14 +321,14 @@ export default function AuctionDetail() {
 
       {/* Tabbed content */}
       <Tabs defaultValue="ranking" className="space-y-4">
-        <TabsList className="flex-wrap h-auto gap-1 bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="ranking" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
+        <TabsList className="w-full sm:w-auto flex h-auto gap-1 bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="ranking" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <BarChart3 className="h-3.5 w-3.5" /> Ranking
           </TabsTrigger>
-          <TabsTrigger value="telegram" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
+          <TabsTrigger value="telegram" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <Send className="h-3.5 w-3.5" /> Telegram
           </TabsTrigger>
-          <TabsTrigger value="detail" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
+          <TabsTrigger value="detail" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
             <DollarSign className="h-3.5 w-3.5" /> Detalle
           </TabsTrigger>
         </TabsList>
@@ -483,7 +536,7 @@ export default function AuctionDetail() {
                   <div className="flex justify-between"><span className="text-muted-foreground">Año</span><span className="tabular-nums">{vehicle.year}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Versión</span><span>{vehicle.trim || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Color</span><span>{vehicle.color || '-'}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">KM</span><span className="tabular-nums">{vehicle.km?.toLocaleString('es-AR') || '-'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">KM</span><span className="tabular-nums">{vehicle.km ? vehicle.km.toLocaleString('es-AR') : '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Combustible</span><span>{vehicle.fuel_type || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Transmisión</span><span>{vehicle.transmission || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Estado</span><StatusBadge status={vehicle.status} /></div>
@@ -496,7 +549,6 @@ export default function AuctionDetail() {
               <h2 className="text-sm font-semibold mb-3">Resumen ejecutivo</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Precio inicial</span><span className="tabular-nums font-medium">{formatCurrency(auction.starting_price)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Precio reserva</span><span className="tabular-nums font-medium">{formatCurrency(auction.reserve_price)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Oferta líder</span><span className="tabular-nums font-medium text-primary">{formatCurrency(auction.current_high_bid)}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Ofertas</span><span className="tabular-nums">{auction.bid_count || 0}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Oferentes</span><span className="tabular-nums">{uniqueBidders}</span></div>
