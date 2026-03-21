@@ -370,7 +370,8 @@ export default function AuctionDetail() {
                   <MessageSquare className="h-10 w-10 mb-3 opacity-40" />
                   <p className="text-sm font-medium">Chat privado</p>
                   <p className="text-xs mt-1">
-                    {status === 'active' ? 'Hacé clic en "Ofertar en privado" en el feed' : 'Disponible cuando la subasta esté activa'}
+                    Disponible cuando la subasta esté activa
+                  </p>
                   </p>
                 </div>
               )}
