@@ -257,7 +257,7 @@ export default function AuctionDetail() {
       <div className="grid grid-cols-2 gap-2 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-5">
         <KPICard title="Inicio" value={formatCurrency(auction.starting_price)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-3.5 w-3.5" />} />
-        <KPICard title="Ofertas" value={auction.bid_count || 0} icon={<Users className="h-3.5 w-3.5" />} description={`${uniqueBidders} oferentes`} />
+        <KPICard title="Ofertas" value={auction.bid_count || '-'} icon={<Users className="h-3.5 w-3.5" />} description={auction.bid_count ? `${uniqueBidders} oferentes` : undefined} />
         <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-3.5 w-3.5" />} />
       </div>
 
