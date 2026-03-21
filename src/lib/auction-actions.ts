@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { AuctionStatus, BidStatus, LeadStatus } from '@/lib/types';
+import { publishAuctionToGroups } from '@/lib/telegram-actions';
 
 // ── Auction state transitions ──────────────────────────────────────
 
