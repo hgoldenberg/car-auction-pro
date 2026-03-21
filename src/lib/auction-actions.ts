@@ -51,6 +51,13 @@ export async function activateAuction(auctionId: string) {
   if (error) throw error;
 
   await logActivity('auction', auctionId, 'auction_activated', `Subasta activada: ${auction.title}`);
+
+  // Auto-publish to all active groups
+  try {
+    await publishAuctionToGroups(auctionId, auction.title);
+  } catch (e) {
+    console.warn('Auto-publish failed:', e);
+  }
 }
 
 // ── Pause auction ──────────────────────────────────────────────────
