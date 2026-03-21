@@ -112,10 +112,10 @@ export default function TelegramGroups() {
         </TabsContent>
 
         <TabsContent value="feed">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:h-[calc(100vh-220px)]">
             {/* Group selector + feed */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col min-h-0 lg:h-full">
+              <div className="flex flex-wrap gap-2 mb-3 shrink-0">
                 <button
                   onClick={() => setSelectedGroupId(null)}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
@@ -136,15 +136,17 @@ export default function TelegramGroups() {
                   </button>
                 ))}
               </div>
-              <TelegramGroupFeed
-                groupId={selectedGroupId || undefined}
-                onBidClick={handleBidClick}
-                maxHeight="600px"
-              />
+              <div className="flex-1 min-h-0">
+                <TelegramGroupFeed
+                  groupId={selectedGroupId || undefined}
+                  onBidClick={handleBidClick}
+                  maxHeight="100%"
+                />
+              </div>
             </div>
 
             {/* Bot chat */}
-            <div>
+            <div className="lg:h-full flex flex-col min-h-0">
               {chatAuction ? (
                 <TelegramBotChat
                   auctionId={chatAuction.id}
@@ -152,7 +154,7 @@ export default function TelegramGroups() {
                   onClose={() => setChatAuction(null)}
                 />
               ) : (
-                <div className="rounded-lg border bg-telegram-bg flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <div className="rounded-lg border bg-telegram-bg flex flex-col items-center justify-center py-16 text-muted-foreground lg:flex-1">
                   <MessageSquare className="h-10 w-10 mb-3 opacity-40" />
                   <p className="text-sm font-medium">Chat privado</p>
                   <p className="text-xs mt-1">Hacé clic en "Ofertar en privado" en el feed</p>

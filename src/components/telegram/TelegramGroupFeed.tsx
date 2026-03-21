@@ -106,15 +106,15 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
   feedItems.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
   return (
-    <div className="bg-telegram-bg rounded-lg border overflow-hidden">
+    <div className="bg-telegram-bg rounded-lg border overflow-hidden flex flex-col" style={{ height: maxHeight === '100%' ? '100%' : maxHeight }}>
       {/* Group header */}
       {!auctionId && publications[0] && (
-        <div className="bg-telegram text-white px-4 py-2.5 flex items-center gap-2">
+        <div className="bg-telegram text-white px-4 py-2.5 flex items-center gap-2 shrink-0">
           <Hash className="h-4 w-4" />
           <span className="font-medium text-sm">{(publications[0] as any).telegram_groups?.name || 'Grupo Demo'}</span>
         </div>
       )}
-      <ScrollArea style={{ maxHeight }} className="p-3 space-y-0">
+      <div className="flex-1 overflow-y-auto p-3">
         <div className="space-y-3">
           {feedItems.map((item, idx) => {
             if (item.type === 'publication') {
@@ -162,11 +162,9 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
 
             if (item.type === 'bid') {
               const bid = item.data;
-              const leadName = (bid as any).leads?.full_name || 'Oferente';
-              // Only show anonymized updates in group
               const statusMessages: Record<string, string | null> = {
                 leading: `🏆 Nueva oferta líder: ${formatCurrency(bid.amount)}\nUn oferente anónimo lidera la subasta.`,
-                outbid: null, // don't show outbid in group
+                outbid: null,
                 winning: `🎉 ¡Subasta adjudicada!\nOferta ganadora: ${formatCurrency(bid.amount)}`,
               };
               const msg = statusMessages[bid.status];
@@ -187,7 +185,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
             return null;
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
