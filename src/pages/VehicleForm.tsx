@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ImagePlus, Star, Trash2, AlertTriangle, Camera } from 'lucide-react';
+import { ImagePlus, AlertTriangle, Camera } from 'lucide-react';
 import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
