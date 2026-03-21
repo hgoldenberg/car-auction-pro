@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { Plus, ImageOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -79,8 +79,7 @@ export default function Vehicles() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <MobileCardRow label="KM">{v.km?.toLocaleString('es-AR')} km</MobileCardRow>
-                <MobileCardRow label="Reserva">{formatCurrency(v.reserve_price)}</MobileCardRow>
+                <MobileCardRow label="KM">{v.km ? `${v.km.toLocaleString('es-AR')} km` : '-'}</MobileCardRow>
               </div>
             </MobileCard>
           ))}
@@ -95,7 +94,6 @@ export default function Vehicles() {
                 <TableHead>Año</TableHead>
                 <TableHead>KM</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead className="text-right">Precio reserva</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha alta</TableHead>
               </TableRow>
@@ -110,9 +108,8 @@ export default function Vehicles() {
                   <TableCell><VehicleThumb storagePath={v._thumb} /></TableCell>
                   <TableCell className="font-medium">{v.make} {v.model} {v.trim}</TableCell>
                   <TableCell className="tabular-nums">{v.year}</TableCell>
-                  <TableCell className="tabular-nums">{v.km?.toLocaleString('es-AR')} km</TableCell>
-                  <TableCell>{v.color}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatCurrency(v.reserve_price)}</TableCell>
+                  <TableCell className="tabular-nums">{v.km ? `${v.km.toLocaleString('es-AR')} km` : '-'}</TableCell>
+                  <TableCell>{v.color || '-'}</TableCell>
                   <TableCell><StatusBadge status={v.status as VehicleStatus} /></TableCell>
                   <TableCell className="tabular-nums text-muted-foreground">{formatDate(v.created_at)}</TableCell>
                 </TableRow>

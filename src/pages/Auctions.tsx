@@ -53,7 +53,7 @@ export default function Auctions() {
                 </div>
                 <div className="space-y-1.5">
                   <MobileCardRow label="Oferta líder">{formatCurrency(a.current_high_bid)}</MobileCardRow>
-                  <MobileCardRow label="Ofertas">{a.bid_count}</MobileCardRow>
+                  <MobileCardRow label="Ofertas">{a.bid_count || '-'}</MobileCardRow>
                   {a.status === 'active' && (
                     <MobileCardRow label="Restante">
                       <span className="text-primary font-medium">{timeRemaining(a.end_date)}</span>
@@ -72,7 +72,6 @@ export default function Auctions() {
                 <TableHead>Vehículo</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Oferta líder</TableHead>
-                <TableHead className="text-right">Precio reserva</TableHead>
                 <TableHead className="text-center">Ofertas</TableHead>
                 <TableHead>Cierre</TableHead>
                 <TableHead>Restante</TableHead>
@@ -90,8 +89,7 @@ export default function Auctions() {
                     <TableCell className="font-medium">{v?.make} {v?.model} {v?.year}</TableCell>
                     <TableCell><StatusBadge status={a.status as AuctionStatus} /></TableCell>
                     <TableCell className="text-right tabular-nums">{formatCurrency(a.current_high_bid)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{formatCurrency(a.reserve_price)}</TableCell>
-                    <TableCell className="text-center tabular-nums">{a.bid_count}</TableCell>
+                    <TableCell className="text-center tabular-nums">{a.bid_count || '-'}</TableCell>
                     <TableCell className="tabular-nums text-muted-foreground">{formatDateTime(a.end_date)}</TableCell>
                     <TableCell className="tabular-nums">{a.status === 'active' ? timeRemaining(a.end_date) : '-'}</TableCell>
                   </TableRow>

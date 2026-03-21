@@ -1,5 +1,5 @@
 export function formatCurrency(amount: number | null | undefined): string {
-  if (amount == null) return '$0';
+  if (amount == null || amount === 0) return '-';
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
     currency: 'ARS',
