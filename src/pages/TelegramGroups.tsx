@@ -97,7 +97,7 @@ export default function TelegramGroups() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groups?.map((g) => (
+                  {groups?.map((g: any) => (
                     <TableRow key={g.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -105,7 +105,14 @@ export default function TelegramGroups() {
                           {g.name}
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">{g.chat_id}</TableCell>
+                      <TableCell>
+                        {g.is_real_group ? (
+                          <Badge variant="outline" className="text-xs text-telegram border-telegram/30">Real</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Demo</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{g.chat_id || '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{g.description}</TableCell>
                       <TableCell className="text-center tabular-nums">{g.member_count?.toLocaleString('es-AR')}</TableCell>
                       <TableCell>
@@ -115,12 +122,20 @@ export default function TelegramGroups() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <button
-                          onClick={() => setSelectedGroupId(g.id)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          Ver feed
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingGroup(g)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => setSelectedGroupId(g.id)}
+                            className="text-xs text-muted-foreground hover:underline"
+                          >
+                            Feed
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
