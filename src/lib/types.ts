@@ -60,3 +60,39 @@ export const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
   posted: 'Publicado',
   failed: 'Fallido',
 };
+
+export const ACTIVITY_ACTIONS: Record<string, string> = {
+  vehicle_created: 'Vehículo creado',
+  auction_created: 'Subasta creada',
+  auction_activated: 'Subasta activada',
+  auction_paused: 'Subasta pausada',
+  auction_closed: 'Subasta cerrada',
+  auction_awarded: 'Subasta adjudicada',
+  publication_created: 'Publicación creada',
+  bid_received: 'Oferta recibida',
+  bid_rejected: 'Oferta rechazada',
+  leading_bid_updated: 'Oferta líder actualizada',
+  lead_updated: 'Lead actualizado',
+  note_added: 'Nota agregada',
+};
+
+export const ENTITY_TYPES: Record<string, string> = {
+  vehicle: 'Vehículo',
+  auction: 'Subasta',
+  bid: 'Oferta',
+  lead: 'Lead',
+  publication: 'Publicación',
+};
+
+// Kanban pipeline columns
+export const LEAD_PIPELINE_COLUMNS: { status: LeadStatus; label: string }[] = [
+  { status: 'new', label: 'Nuevos' },
+  { status: 'interested', label: 'Interesados' },
+  { status: 'bid_once', label: '1ra Oferta' },
+  { status: 'active_bidder', label: 'Ofertantes' },
+  { status: 'finalist', label: 'Finalistas' },
+  { status: 'winner', label: 'Ganadores' },
+  { status: 'follow_up', label: 'Seguimiento' },
+  { status: 'lost', label: 'Perdidos' },
+  { status: 'closed', label: 'Cerrados' },
+];
