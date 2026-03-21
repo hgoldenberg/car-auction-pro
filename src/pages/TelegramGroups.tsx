@@ -154,7 +154,7 @@ export default function TelegramGroups() {
             </div>
 
             {/* Bot chat */}
-            <div className="lg:h-full flex flex-col min-h-0">
+            <div ref={chatRef} className="lg:h-full flex flex-col min-h-0">
               {chatAuction ? (
                 <TelegramBotChat
                   auctionId={chatAuction.id}
