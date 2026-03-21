@@ -33,6 +33,9 @@ export function TelegramMessage({ sender, senderName, text, time, imageUrl, chil
             ? 'bg-card border border-border rounded-tl-sm'
             : 'bg-telegram/10 text-foreground rounded-tr-sm'
         )}>
+          {imageUrl && (
+            <img src={imageUrl} alt="Vehículo" className="rounded-lg w-full mb-2 max-h-48 object-cover" />
+          )}
           <div className="whitespace-pre-line">{text}</div>
           {children}
           <p className={cn('text-[10px] mt-1 tabular-nums', isBot ? 'text-muted-foreground' : 'text-telegram/60')}>
