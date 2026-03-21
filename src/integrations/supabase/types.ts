@@ -250,6 +250,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          origin_group_id: string | null
           phone: string | null
           status: Database["public"]["Enums"]["lead_status"]
           telegram_username: string | null
@@ -261,6 +262,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          origin_group_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           telegram_username?: string | null
@@ -272,12 +274,21 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          origin_group_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
           telegram_username?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "leads_origin_group_id_fkey"
+            columns: ["origin_group_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       telegram_groups: {
         Row: {
