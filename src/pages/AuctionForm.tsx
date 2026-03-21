@@ -20,7 +20,7 @@ export default function AuctionForm() {
 
   const [form, setForm] = useState({
     vehicle_id: '', title: '', start_date: '', end_date: '',
-    reserve_price: 0, starting_price: 0, status: 'draft' as AuctionStatus,
+    reserve_price: '' as number | '', starting_price: '' as number | '', status: 'draft' as AuctionStatus,
   });
 
   const { data: vehicles } = useQuery({
@@ -58,6 +58,8 @@ export default function AuctionForm() {
     mutationFn: async () => {
       const payload = {
         ...form,
+        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
+        starting_price: form.starting_price === '' ? 0 : form.starting_price,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
       };
@@ -117,11 +119,11 @@ export default function AuctionForm() {
           </div>
           <div className="space-y-2">
             <Label>Precio inicial</Label>
-            <Input type="number" value={form.starting_price} onChange={e => handleChange('starting_price', +e.target.value)} />
+            <Input type="number" placeholder="Ingresá un monto" value={form.starting_price} onChange={e => handleChange('starting_price', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Precio reserva</Label>
-            <Input type="number" value={form.reserve_price} onChange={e => handleChange('reserve_price', +e.target.value)} />
+            <Input type="number" placeholder="Ingresá un monto" value={form.reserve_price} onChange={e => handleChange('reserve_price', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Estado</Label>

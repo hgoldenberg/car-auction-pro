@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { ImagePlus, Star, Trash2, AlertTriangle } from 'lucide-react';
+import { ImagePlus, Star, Trash2, AlertTriangle, Camera } from 'lucide-react';
 import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
@@ -24,8 +24,8 @@ export default function VehicleForm() {
 
   const [form, setForm] = useState({
     make: '', model: '', year: new Date().getFullYear(), trim: '', vin: '',
-    km: 0, color: '', transmission: '', fuel_type: '', doors: 4,
-    description: '', reserve_price: 0, status: 'draft' as VehicleStatus,
+    km: '' as number | '', color: '', transmission: '', fuel_type: '', doors: 4 as number | '',
+    description: '', reserve_price: '' as number | '', status: 'draft' as VehicleStatus,
   });
 
   const { data: vehicle } = useQuery({
@@ -55,11 +55,17 @@ export default function VehicleForm() {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const payload = {
+        ...form,
+        km: form.km === '' ? 0 : form.km,
+        doors: form.doors === '' ? 4 : form.doors,
+        reserve_price: form.reserve_price === '' ? 0 : form.reserve_price,
+      };
       if (isEdit) {
-        const { error } = await supabase.from('vehicles').update(form).eq('id', id);
+        const { error } = await supabase.from('vehicles').update(payload).eq('id', id);
         if (error) throw error;
       } else {
-        const { data, error } = await supabase.from('vehicles').insert(form).select('id').single();
+        const { data, error } = await supabase.from('vehicles').insert(payload).select('id').single();
         if (error) throw error;
         return data;
       }
@@ -113,11 +119,25 @@ export default function VehicleForm() {
               <ImagePlus className="h-4 w-4" /> Imágenes del vehículo
             </Label>
 
-            {/* Grid of images */}
+            {/* Main image highlight */}
+            {mainImage && (
+              <div className="relative rounded-lg overflow-hidden border-2 border-primary/30 aspect-video bg-muted">
+                <img
+                  src={getVehicleImageUrl(mainImage.storage_path)}
+                  alt="Foto principal"
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
+                  Foto principal
+                </span>
+              </div>
+            )}
+
+            {/* Grid of additional images */}
             {images.length > 0 && (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {images.map((img) => (
-                  <div key={img.id} className="group relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
+                  <div key={img.id} className="relative rounded-md overflow-hidden border aspect-[4/3] bg-muted">
                     <img
                       src={getVehicleImageUrl(img.storage_path)}
                       alt="Vehículo"
@@ -128,14 +148,15 @@ export default function VehicleForm() {
                         Principal
                       </span>
                     )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                    {/* Always-visible actions on mobile, hover on desktop */}
+                    <div className="absolute inset-x-0 bottom-0 p-1 flex justify-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent sm:inset-0 sm:bg-black/40 sm:opacity-0 sm:hover:opacity-100 sm:items-center sm:transition-opacity">
                       {!img.is_main && (
-                        <Button type="button" size="icon" variant="secondary" className="h-7 w-7" onClick={() => setMain(img.id)}>
-                          <Star className="h-3.5 w-3.5" />
+                        <Button type="button" size="icon" variant="secondary" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => setMain(img.id)}>
+                          <Star className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                         </Button>
                       )}
-                      <Button type="button" size="icon" variant="destructive" className="h-7 w-7" onClick={() => deleteImage(img)}>
-                        <Trash2 className="h-3.5 w-3.5" />
+                      <Button type="button" size="icon" variant="destructive" className="h-8 w-8 sm:h-7 sm:w-7" onClick={() => deleteImage(img)}>
+                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
                       </Button>
                     </div>
                   </div>
@@ -143,13 +164,26 @@ export default function VehicleForm() {
               </div>
             )}
 
-            {/* Upload button */}
+            {/* Upload buttons - mobile friendly */}
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFileSelect(e.target.files)} />
-            <Button type="button" variant="outline" size="sm" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
-              <ImagePlus className="h-4 w-4 mr-1" />
-              {isUploading ? 'Subiendo...' : 'Agregar imágenes'}
-            </Button>
-            <p className="text-xs text-muted-foreground">La primera imagen subida se establece como principal. Hacé hover para cambiar o eliminar.</p>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" size="default" className="flex-1 sm:flex-none sm:size-sm" disabled={isUploading} onClick={() => fileInputRef.current?.click()}>
+                <ImagePlus className="h-4 w-4 mr-2" />
+                {isUploading ? 'Subiendo...' : 'Galería'}
+              </Button>
+              <Button type="button" variant="outline" size="default" className="flex-1 sm:hidden" disabled={isUploading} onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.capture = 'environment';
+                input.onchange = (e) => handleFileSelect((e.target as HTMLInputElement).files);
+                input.click();
+              }}>
+                <Camera className="h-4 w-4 mr-2" />
+                Cámara
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">La primera imagen se establece como principal. Tocá los íconos en cada foto para cambiar o eliminar.</p>
           </div>
         )}
 
@@ -183,7 +217,7 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Kilómetros</Label>
-            <Input type="number" value={form.km} onChange={e => handleChange('km', +e.target.value)} />
+            <Input type="number" placeholder="Ej: 45000" value={form.km} onChange={e => handleChange('km', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Color</Label>
@@ -199,11 +233,11 @@ export default function VehicleForm() {
           </div>
           <div className="space-y-2">
             <Label>Puertas</Label>
-            <Input type="number" value={form.doors} onChange={e => handleChange('doors', +e.target.value)} />
+            <Input type="number" placeholder="Ej: 4" value={form.doors} onChange={e => handleChange('doors', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Precio reserva</Label>
-            <Input type="number" value={form.reserve_price} onChange={e => handleChange('reserve_price', +e.target.value)} />
+            <Input type="number" placeholder="Ingresá un monto" value={form.reserve_price} onChange={e => handleChange('reserve_price', e.target.value === '' ? '' : +e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label>Estado</Label>
