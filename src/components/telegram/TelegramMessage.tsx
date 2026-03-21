@@ -10,7 +10,7 @@ export interface TelegramMessageProps {
   children?: React.ReactNode;
 }
 
-export function TelegramMessage({ sender, senderName, text, time, children }: TelegramMessageProps) {
+export function TelegramMessage({ sender, senderName, text, time, imageUrl, children }: TelegramMessageProps) {
   const isBot = sender === 'bot';
 
   return (
