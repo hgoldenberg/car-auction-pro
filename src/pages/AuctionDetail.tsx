@@ -186,7 +186,7 @@ export default function AuctionDetail() {
               </div>
               <div>
                 <span className="text-muted-foreground text-xs">Ofertas</span>
-                <p className="font-semibold tabular-nums">{auction.bid_count || 0}</p>
+                <p className="font-semibold tabular-nums">{auction.bid_count || '-'}</p>
               </div>
               <div>
                 <span className="text-muted-foreground text-xs">Cierre</span>

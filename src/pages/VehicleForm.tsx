@@ -74,16 +74,25 @@ export default function VehicleForm() {
         if (error) throw error;
         // Upload pending image after vehicle creation
         if (pendingImage && data) {
-          const ext = pendingImage.name.split('.').pop();
+          const ext = pendingImage.name.split('.').pop() || 'jpg';
           const path = `${data.id}/${Date.now()}.${ext}`;
-          const { error: uploadErr } = await supabase.storage.from('vehicle-images').upload(path, pendingImage);
-          if (!uploadErr) {
-            await supabase.from('vehicle_images').insert({
+          const { error: uploadErr } = await supabase.storage.from('vehicle-images').upload(path, pendingImage, {
+            contentType: pendingImage.type || 'image/jpeg',
+          });
+          if (uploadErr) {
+            console.error('Image upload error:', uploadErr);
+            toast.error('Vehículo creado pero falló la subida de imagen');
+          } else {
+            const { error: imgErr } = await supabase.from('vehicle_images').insert({
               vehicle_id: data.id,
               storage_path: path,
               is_main: true,
               display_order: 0,
             });
+            if (imgErr) {
+              console.error('Image record error:', imgErr);
+              toast.error('Imagen subida pero falló el registro');
+            }
           }
         }
         return data;
@@ -91,8 +100,11 @@ export default function VehicleForm() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      toast.success(isEdit ? 'Vehículo actualizado' : 'Vehículo creado');
-      if (!isEdit && data) {
+      if (isEdit) {
+        toast.success('Vehículo actualizado');
+        navigate('/vehiculos');
+      } else if (data) {
+        toast.success(pendingImage ? 'Vehículo creado con foto principal' : 'Vehículo creado');
         navigate(`/vehiculos/${data.id}`);
       }
     },
