@@ -198,6 +198,14 @@ export default function TelegramGroups() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {editingGroup && (
+        <EditTelegramGroupDialog
+          group={editingGroup}
+          open={!!editingGroup}
+          onClose={() => setEditingGroup(null)}
+        />
+      )}
     </AppLayout>
   );
 }
