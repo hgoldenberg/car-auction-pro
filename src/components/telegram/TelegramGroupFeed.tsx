@@ -20,7 +20,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     queryFn: async () => {
       let q = supabase
         .from('auction_group_publications')
-        .select('*, telegram_groups(name), auctions(id, title, status, starting_price, current_high_bid, bid_count, end_date, vehicles(make, model, year, trim, color, km))')
+        .select('*, telegram_groups(name), auctions(id, title, status, starting_price, current_high_bid, bid_count, end_date, vehicle_id, vehicles(make, model, year, trim, color, km))')
         .eq('status', 'posted')
         .order('published_at', { ascending: true });
 
