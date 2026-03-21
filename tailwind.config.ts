@@ -69,6 +69,10 @@ export default {
           neutral: "hsl(var(--status-neutral))",
           "neutral-bg": "hsl(var(--status-neutral-bg))",
         },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
         telegram: {
           DEFAULT: "hsl(var(--telegram))",
           bg: "hsl(var(--telegram-bg))",

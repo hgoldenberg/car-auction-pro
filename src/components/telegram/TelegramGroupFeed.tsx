@@ -5,6 +5,7 @@ import { formatCurrency, formatDateTime, timeAgo } from '@/lib/formatters';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 
 interface TelegramGroupFeedProps {
   groupId?: string;
@@ -19,7 +20,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     queryFn: async () => {
       let q = supabase
         .from('auction_group_publications')
-        .select('*, telegram_groups(name), auctions(id, title, status, starting_price, current_high_bid, bid_count, end_date, vehicles(make, model, year, trim, color, km))')
+        .select('*, telegram_groups(name), auctions(id, title, status, starting_price, current_high_bid, bid_count, end_date, vehicle_id, vehicles(make, model, year, trim, color, km))')
         .eq('status', 'posted')
         .order('published_at', { ascending: true });
 
@@ -44,6 +45,28 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     },
   });
 
+  // Get vehicle IDs from publications to fetch their images
+  const vehicleIds = [...new Set(
+    (publications || []).map((p: any) => p.auctions?.vehicle_id).filter(Boolean)
+  )];
+
+  const { data: vehicleImagesMap } = useQuery({
+    queryKey: ['feed-vehicle-images', vehicleIds.join(',')],
+    enabled: vehicleIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('vehicle_images')
+        .select('vehicle_id, storage_path, is_main')
+        .in('vehicle_id', vehicleIds)
+        .order('is_main', { ascending: false });
+      const map: Record<string, string> = {};
+      (data || []).forEach((img: any) => {
+        if (!map[img.vehicle_id]) map[img.vehicle_id] = img.storage_path;
+      });
+      return map;
+    },
+  });
+
   if (!publications?.length) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
@@ -61,11 +84,12 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     const auction = (pub as any).auctions;
     const vehicle = auction?.vehicles;
     if (!auction || !vehicle) return;
+    const imgPath = vehicleImagesMap?.[auction.vehicle_id];
 
     feedItems.push({
       type: 'publication',
       time: pub.published_at || pub.created_at,
-      data: { pub, auction, vehicle, group: (pub as any).telegram_groups },
+      data: { pub, auction, vehicle, group: (pub as any).telegram_groups, imgUrl: imgPath ? getVehicleImageUrl(imgPath) : null },
     });
   });
 
@@ -94,7 +118,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
         <div className="space-y-3">
           {feedItems.map((item, idx) => {
             if (item.type === 'publication') {
-              const { auction, vehicle, group } = item.data;
+              const { auction, vehicle, group, imgUrl } = item.data;
               const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
               const text = [
                 `🚗 *SUBASTA ABIERTA*`,
@@ -120,6 +144,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
                     senderName="🤖 SubastaBot"
                     text={text}
                     time={formatDateTime(item.time)}
+                    imageUrl={imgUrl}
                   >
                     {onBidClick && auction.status === 'active' && (
                       <Button
