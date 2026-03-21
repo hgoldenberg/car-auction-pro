@@ -5,17 +5,20 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MobileCard, MobileCardRow } from '@/components/MobileCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
-import { Send, Hash, MessageSquare } from 'lucide-react';
+import { EditTelegramGroupDialog } from '@/components/EditTelegramGroupDialog';
+import { Send, Hash, MessageSquare, Settings } from 'lucide-react';
 
 export default function TelegramGroups() {
   const isMobile = useIsMobile();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [chatAuction, setChatAuction] = useState<{ id: string; title: string } | null>(null);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const { data: groups, isLoading } = useQuery({
@@ -55,19 +58,26 @@ export default function TelegramGroups() {
           {isLoading && <p className="text-center py-8 text-muted-foreground">Cargando...</p>}
           {isMobile ? (
             <div className="space-y-3">
-              {groups?.map((g) => (
+              {groups?.map((g: any) => (
                 <MobileCard key={g.id} onClick={() => { setSelectedGroupId(g.id); }}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Send className="h-4 w-4 text-primary shrink-0" />
                       <p className="font-medium text-sm">{g.name}</p>
+                      {g.is_real_group && <Badge variant="outline" className="text-xs text-telegram border-telegram/30">Real</Badge>}
                     </div>
-                    <Badge variant={g.is_active ? 'default' : 'secondary'}
-                      className={g.is_active ? 'bg-status-success-bg text-status-success border-0' : ''}>
-                      {g.is_active ? 'Activo' : 'Inactivo'}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant={g.is_active ? 'default' : 'secondary'}
+                        className={g.is_active ? 'bg-status-success-bg text-status-success border-0' : ''}>
+                        {g.is_active ? 'Activo' : 'Inactivo'}
+                      </Badge>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setEditingGroup(g); }}>
+                        <Settings className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   {g.description && <p className="text-xs text-muted-foreground mb-2">{g.description}</p>}
+                  <MobileCardRow label="Chat ID">{g.chat_id || '—'}</MobileCardRow>
                   <MobileCardRow label="Miembros">{g.member_count?.toLocaleString('es-AR')}</MobileCardRow>
                 </MobileCard>
               ))}
@@ -77,8 +87,9 @@ export default function TelegramGroups() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nombre</TableHead>
-                    <TableHead>Chat ID</TableHead>
+                     <TableHead>Nombre</TableHead>
+                     <TableHead>Tipo</TableHead>
+                     <TableHead>Chat ID</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-center">Miembros</TableHead>
                     <TableHead>Estado</TableHead>
@@ -86,7 +97,7 @@ export default function TelegramGroups() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groups?.map((g) => (
+                  {groups?.map((g: any) => (
                     <TableRow key={g.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
@@ -94,7 +105,14 @@ export default function TelegramGroups() {
                           {g.name}
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">{g.chat_id}</TableCell>
+                      <TableCell>
+                        {g.is_real_group ? (
+                          <Badge variant="outline" className="text-xs text-telegram border-telegram/30">Real</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Demo</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{g.chat_id || '—'}</TableCell>
                       <TableCell className="text-muted-foreground">{g.description}</TableCell>
                       <TableCell className="text-center tabular-nums">{g.member_count?.toLocaleString('es-AR')}</TableCell>
                       <TableCell>
@@ -104,12 +122,20 @@ export default function TelegramGroups() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <button
-                          onClick={() => setSelectedGroupId(g.id)}
-                          className="text-xs text-primary hover:underline"
-                        >
-                          Ver feed
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingGroup(g)}
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => setSelectedGroupId(g.id)}
+                            className="text-xs text-muted-foreground hover:underline"
+                          >
+                            Feed
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -172,6 +198,14 @@ export default function TelegramGroups() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {editingGroup && (
+        <EditTelegramGroupDialog
+          group={editingGroup}
+          open={!!editingGroup}
+          onClose={() => setEditingGroup(null)}
+        />
+      )}
     </AppLayout>
   );
 }

@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle, ImageOff } from 'lucide-react';
+import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle } from 'lucide-react';
+import { TelegramPublishDialog } from '@/components/TelegramPublishDialog';
 import { ACTIVITY_ACTIONS } from '@/lib/types';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
 import { activateAuction, pauseAuction, closeAuction, awardAuction, submitBid } from '@/lib/auction-actions';
@@ -206,6 +207,7 @@ export default function AuctionDetail() {
         )}
         {status === 'active' && (
           <>
+            <TelegramPublishDialog auctionId={id!} auctionTitle={auction.title} auctionStatus={status} />
             <Button size="sm" variant="secondary" className="rounded-lg" onClick={() => setShowBidForm(!showBidForm)}>
               <Plus className="h-4 w-4 mr-1" /> Inyectar oferta
             </Button>
@@ -417,11 +419,21 @@ export default function AuctionDetail() {
             <div className="divide-y">
               {publications?.map((pub) => {
                 const group = (pub as any).telegram_groups;
+                const isReal = (pub as any).publication_type === 'real';
                 return (
                   <div key={pub.id} className="p-3 flex items-center justify-between sm:p-4">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{group?.name}</p>
-                      <p className="text-xs text-muted-foreground">{pub.published_at ? formatDateTime(pub.published_at) : 'Sin publicar'}</p>
+                      <p className="text-sm font-medium truncate">
+                        {group?.name}
+                        {isReal && <span className="ml-1.5 text-xs text-telegram font-normal">· Real</span>}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {pub.published_at ? formatDateTime(pub.published_at) : 'Sin publicar'}
+                        {(pub as any).external_message_id && ` · msg#${(pub as any).external_message_id}`}
+                      </p>
+                      {(pub as any).error_message && (
+                        <p className="text-xs text-destructive mt-0.5">{(pub as any).error_message}</p>
+                      )}
                     </div>
                     <StatusBadge status={pub.status as PublicationStatus} />
                   </div>

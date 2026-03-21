@@ -72,27 +72,36 @@ export type Database = {
         Row: {
           auction_id: string
           created_at: string
+          error_message: string | null
+          external_message_id: string | null
           group_id: string
           id: string
           message_id: string | null
+          publication_type: string
           published_at: string | null
           status: Database["public"]["Enums"]["publication_status"]
         }
         Insert: {
           auction_id: string
           created_at?: string
+          error_message?: string | null
+          external_message_id?: string | null
           group_id: string
           id?: string
           message_id?: string | null
+          publication_type?: string
           published_at?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
         }
         Update: {
           auction_id?: string
           created_at?: string
+          error_message?: string | null
+          external_message_id?: string | null
           group_id?: string
           id?: string
           message_id?: string | null
+          publication_type?: string
           published_at?: string | null
           status?: Database["public"]["Enums"]["publication_status"]
         }
@@ -297,8 +306,10 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
+          is_real_group: boolean
           member_count: number | null
           name: string
+          notes: string | null
         }
         Insert: {
           chat_id?: string | null
@@ -306,8 +317,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_real_group?: boolean
           member_count?: number | null
           name: string
+          notes?: string | null
         }
         Update: {
           chat_id?: string | null
@@ -315,8 +328,10 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
+          is_real_group?: boolean
           member_count?: number | null
           name?: string
+          notes?: string | null
         }
         Relationships: []
       }
