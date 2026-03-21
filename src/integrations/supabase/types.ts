@@ -299,6 +299,54 @@ export type Database = {
           },
         ]
       }
+      telegram_bot_state: {
+        Row: {
+          id: number
+          update_offset: number
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_chat_context: {
+        Row: {
+          auction_id: string
+          chat_id: number
+          created_at: string
+          telegram_first_name: string | null
+          telegram_user_id: number | null
+          telegram_username: string | null
+          updated_at: string
+        }
+        Insert: {
+          auction_id: string
+          chat_id: number
+          created_at?: string
+          telegram_first_name?: string | null
+          telegram_user_id?: number | null
+          telegram_username?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auction_id?: string
+          chat_id?: number
+          created_at?: string
+          telegram_first_name?: string | null
+          telegram_user_id?: number | null
+          telegram_username?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       telegram_groups: {
         Row: {
           chat_id: string | null
