@@ -141,7 +141,7 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
   }, [messages]);
 
   return (
-    <div className="bg-telegram-bg rounded-lg border overflow-hidden flex flex-col" style={{ height: '480px' }}>
+    <div className="bg-telegram-bg rounded-lg border overflow-hidden flex flex-col lg:h-full" style={{ minHeight: '400px' }}>
       {/* Header */}
       <div className="bg-telegram text-white px-4 py-2.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
