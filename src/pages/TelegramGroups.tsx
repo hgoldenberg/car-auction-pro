@@ -5,12 +5,14 @@ import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MobileCard, MobileCardRow } from '@/components/MobileCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
-import { Send, Hash, MessageSquare } from 'lucide-react';
+import { EditTelegramGroupDialog } from '@/components/EditTelegramGroupDialog';
+import { Send, Hash, MessageSquare, Settings } from 'lucide-react';
 
 export default function TelegramGroups() {
   const isMobile = useIsMobile();
