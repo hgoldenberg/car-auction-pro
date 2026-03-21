@@ -164,14 +164,18 @@ export async function submitBid(auctionId: string, leadId: string, amount: numbe
     bid_count: (auction.bid_count || 0) + 1,
   }).eq('id', auctionId);
 
-  // Update lead status
+  // Update lead status + latest_bid_amount + last_activity_at
   const { data: leadBidCount } = await supabase
     .from('bids')
     .select('id', { count: 'exact', head: true })
     .eq('lead_id', leadId);
 
   const newLeadStatus: LeadStatus = (leadBidCount as any)?.length > 1 ? 'active_bidder' : 'bid_once';
-  await supabase.from('leads').update({ status: newLeadStatus }).eq('id', leadId);
+  await supabase.from('leads').update({
+    status: newLeadStatus,
+    latest_bid_amount: amount,
+    last_activity_at: new Date().toISOString(),
+  }).eq('id', leadId);
 
   await logActivity('bid', null, 'bid_received',
     `Nueva oferta de $${amount.toLocaleString('es-AR')} en ${auction.title}`
