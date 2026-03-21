@@ -14,6 +14,7 @@ import { ImagePlus, AlertTriangle, Camera } from 'lucide-react';
 import type { VehicleStatus } from '@/lib/types';
 import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
+import { SortableImageGrid } from '@/components/SortableImageGrid';
 
 export default function VehicleForm() {
   const { id } = useParams();
