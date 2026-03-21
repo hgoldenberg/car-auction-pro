@@ -63,6 +63,10 @@
     --status-neutral: 215 16% 47%;
     --status-neutral-bg: 210 40% 96%;
 
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 38 50% 20%;
+
     /* Telegram */
     --telegram: 200 80% 45%;
     --telegram-bg: 200 20% 97%;
