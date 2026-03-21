@@ -151,7 +151,21 @@ async function handleBid(
   supabase: any, chatId: number, amount: number, telegramUser: any, updateId: number,
   lovableKey: string, telegramKey: string
 ) {
-  // Get context
+  const formatARS = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
+
+  // 1) Idempotency FIRST — before any validation
+  const idempotencyKey = `tg-${updateId}`;
+  const { data: existingBid } = await supabase
+    .from('bids')
+    .select('id')
+    .eq('notes', idempotencyKey)
+    .single();
+
+  if (existingBid) {
+    return jsonResponse({ ok: true, action: 'duplicate_skipped' });
+  }
+
+  // 2) Get context
   const { data: ctx } = await supabase
     .from('telegram_chat_context')
     .select('auction_id')
@@ -165,7 +179,7 @@ async function handleBid(
 
   const auctionId = ctx.auction_id;
 
-  // Get auction
+  // 3) Get auction
   const { data: auction } = await supabase
     .from('auctions')
     .select('*, vehicles(make, model, year)')
@@ -177,45 +191,48 @@ async function handleBid(
     return jsonResponse({ ok: true, action: 'auction_not_found' });
   }
 
+  const vehicle = auction.vehicles;
+  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` : auction.title;
+
+  // Find or create lead (needed for both valid and rejected bids)
+  const lead = await findOrCreateLead(supabase, telegramUser, chatId);
+
+  // 4) Validate auction active
   if (auction.status !== 'active') {
+    await supabase.from('bids').insert({
+      auction_id: auctionId, lead_id: lead.id, amount, status: 'rejected', notes: idempotencyKey,
+    });
+    await supabase.from('activity_log').insert({
+      entity_type: 'bid', entity_id: auctionId, action: 'bid_rejected',
+      description: `Oferta ${formatARS(amount)} rechazada: subasta no activa (${auction.status})`,
+      metadata: { auction_id: auctionId, amount, chat_id: chatId, reason: 'auction_not_active' },
+    });
     await sendTelegram(chatId, '⚠️ Esta subasta no está activa actualmente. No se aceptan ofertas.', lovableKey, telegramKey);
     return jsonResponse({ ok: true, action: 'auction_not_active' });
   }
 
-  // Validate minimum bid
+  // 5) Validate minimum bid
   const currentHigh = auction.current_high_bid || 0;
   const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction.starting_price || 0);
-  const formatARS = (n: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
 
   if (amount < minBid) {
+    await supabase.from('bids').insert({
+      auction_id: auctionId, lead_id: lead.id, amount, status: 'rejected', notes: idempotencyKey,
+    });
+    await supabase.from('activity_log').insert({
+      entity_type: 'bid', entity_id: auctionId, action: 'bid_rejected',
+      description: `Oferta ${formatARS(amount)} rechazada: mínimo ${formatARS(minBid)}`,
+      metadata: { auction_id: auctionId, amount, min_bid: minBid, chat_id: chatId, reason: 'bid_too_low' },
+    });
     await sendTelegram(chatId, `❌ Tu oferta de ${formatARS(amount)} no alcanza el mínimo.\n\n💰 Oferta mínima: ${formatARS(minBid)}`, lovableKey, telegramKey);
     return jsonResponse({ ok: true, action: 'bid_too_low' });
   }
 
-  // Idempotency: check if this update_id was already processed
-  const idempotencyKey = `tg-${updateId}`;
-  const { data: existingBid } = await supabase
-    .from('bids')
-    .select('id')
-    .eq('notes', idempotencyKey)
-    .single();
-
-  if (existingBid) {
-    return jsonResponse({ ok: true, action: 'duplicate_skipped' });
-  }
-
-  // Find or create lead
-  const lead = await findOrCreateLead(supabase, telegramUser, chatId);
-
-  // Create bid
+  // 6) Create valid bid
   const { data: newBid, error: bidErr } = await supabase
     .from('bids')
     .insert({
-      auction_id: auctionId,
-      lead_id: lead.id,
-      amount,
-      status: 'leading',
-      notes: idempotencyKey,
+      auction_id: auctionId, lead_id: lead.id, amount, status: 'leading', notes: idempotencyKey,
     })
     .select('id')
     .single();
@@ -237,20 +254,22 @@ async function handleBid(
   // Update auction counters
   await supabase
     .from('auctions')
-    .update({
-      current_high_bid: amount,
-      bid_count: (auction.bid_count || 0) + 1,
-    })
+    .update({ current_high_bid: amount, bid_count: (auction.bid_count || 0) + 1 })
     .eq('id', auctionId);
 
-  // Activity log
-  const vehicle = auction.vehicles;
-  const vehicleTitle = vehicle ? `${vehicle.make} ${vehicle.model} ${vehicle.year}` : auction.title;
+  // Update lead with latest bid info
+  await supabase
+    .from('leads')
+    .update({
+      latest_bid_amount: amount,
+      last_activity_at: new Date().toISOString(),
+      status: lead.status === 'new' || lead.status === 'interested' ? 'active_bidder' : lead.status,
+    })
+    .eq('id', lead.id);
 
+  // Activity log
   await supabase.from('activity_log').insert({
-    entity_type: 'bid',
-    entity_id: newBid.id,
-    action: 'bid_received',
+    entity_type: 'bid', entity_id: newBid.id, action: 'bid_received',
     description: `Oferta ${formatARS(amount)} recibida vía Telegram para "${vehicleTitle}"`,
     metadata: { auction_id: auctionId, amount, chat_id: chatId, telegram_user: telegramUser },
   });

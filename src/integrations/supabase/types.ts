@@ -259,6 +259,8 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          last_activity_at: string | null
+          latest_bid_amount: number | null
           origin_group_id: string | null
           phone: string | null
           status: Database["public"]["Enums"]["lead_status"]
@@ -271,6 +273,8 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          last_activity_at?: string | null
+          latest_bid_amount?: number | null
           origin_group_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
@@ -283,6 +287,8 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          last_activity_at?: string | null
+          latest_bid_amount?: number | null
           origin_group_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["lead_status"]
