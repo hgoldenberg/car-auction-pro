@@ -295,7 +295,17 @@ export default function AuctionDetail() {
         <KPICard title="Inicio" value={formatCurrency(auction.starting_price)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Ofertas" value={auction.bid_count || '-'} icon={<Users className="h-3.5 w-3.5" />} description={auction.bid_count ? `${uniqueBidders} oferentes` : undefined} />
-        <KPICard title="Galería" value={galleryViewCount ?? 0} icon={<Eye className="h-3.5 w-3.5" />} description="vistas" />
+        <KPICard title="Galería" value={galleryViewCount ?? 0} icon={<Eye className="h-3.5 w-3.5" />} description="vistas">
+          {dailyViewsData.length > 0 && (
+            <div className="mt-1.5 h-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailyViewsData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <Bar dataKey="vistas" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </KPICard>
         <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-3.5 w-3.5" />} />
       </div>
 
