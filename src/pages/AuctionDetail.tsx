@@ -103,6 +103,31 @@ export default function AuctionDetail() {
     },
   });
 
+  const { data: galleryViewsByDay } = useQuery({
+    queryKey: ['gallery-views-daily', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('gallery_views')
+        .select('viewed_at')
+        .eq('auction_id', id!)
+        .order('viewed_at');
+      return data || [];
+    },
+  });
+
+  const dailyViewsData = useMemo(() => {
+    if (!galleryViewsByDay?.length) return [];
+    const counts: Record<string, number> = {};
+    galleryViewsByDay.forEach((v: any) => {
+      const day = v.viewed_at.substring(0, 10);
+      counts[day] = (counts[day] || 0) + 1;
+    });
+    return Object.entries(counts).map(([date, count]) => ({
+      date: date.substring(5), // MM-DD
+      vistas: count,
+    }));
+  }, [galleryViewsByDay]);
+
   const { data: leads } = useQuery({
     queryKey: ['leads-for-bid'],
     queryFn: async () => {
