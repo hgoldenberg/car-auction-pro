@@ -39,6 +39,14 @@ export default function Dashboard() {
     },
   });
 
+  const { data: galleryViews } = useQuery({
+    queryKey: ['gallery-views-total'],
+    queryFn: async () => {
+      const { count } = await supabase.from('gallery_views').select('*', { count: 'exact', head: true });
+      return count || 0;
+    },
+  });
+
   const { data: activity } = useQuery({
     queryKey: ['activity-recent'],
     queryFn: async () => {
