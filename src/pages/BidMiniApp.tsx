@@ -60,7 +60,7 @@ export default function BidMiniApp() {
   const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
 
   const handleSubmit = async () => {
-    if (!data || !auctionId) return;
+    if (!data || !auctionId || submitting) return;
 
     if (!bidderName.trim()) {
       setResult({ success: false, message: 'Ingresá tu nombre para identificarte.' });
@@ -107,10 +107,8 @@ export default function BidMiniApp() {
     if (result && !result.success) setResult(null);
   };
 
-  // Format display value with thousand separators
-  const displayAmount = bidInput
-    ? `$ ${parseInt(bidInput, 10).toLocaleString('es-AR')}`
-    : '';
+  // Format display value for live feedback only (input stays as raw digits)
+  const displayAmount = bidInput;
 
   if (isLoading) {
     return (
