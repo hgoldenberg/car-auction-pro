@@ -155,7 +155,7 @@ export default function VehicleGallery() {
   const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
   const currentImage = images[currentIndex];
   const imageUrl = getVehicleImageUrl(currentImage.storage_path);
-  const botDeepLink = `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction.id}`;
+  const bidLink = `/ofertar/${auction.id}`;
 
   // Fullscreen overlay
   if (fullscreen) {
