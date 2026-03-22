@@ -198,6 +198,9 @@ async function notifyGroups(
       closingText,
     ].filter(Boolean).join('\n');
 
+    const PUBLISHED_URL = 'https://car-auction-pro.lovable.app';
+    const miniAppUrl = `${PUBLISHED_URL}/ofertar/${auctionId}`;
+
     const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram';
 
     for (const pub of publications) {
@@ -211,7 +214,16 @@ async function notifyGroups(
           'X-Connection-Api-Key': TELEGRAM_API_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ chat_id: Number(group.chat_id), text, parse_mode: 'Markdown' }),
+        body: JSON.stringify({
+          chat_id: Number(group.chat_id),
+          text,
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [[
+              { text: '💰 Reofertar', web_app: { url: miniAppUrl } }
+            ]]
+          }
+        }),
       });
     }
   } catch (e) {
