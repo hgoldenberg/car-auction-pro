@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
       return json({ error: 'Esta subasta no está activa. No se aceptan ofertas.' });
     }
 
+    // Find or create lead early (needed for rejected bid recording too)
+    const lead = await findOrCreateLead(supabase, bidder_name.trim());
+
     // Validate minimum
     const currentHigh = auction.current_high_bid || 0;
     const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction.starting_price || 0);
@@ -51,11 +54,20 @@ Deno.serve(async (req) => {
       new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
 
     if (numAmount < minBid) {
+      // Record rejected bid for audit trail (consistent with bot handler)
+      await supabase.from('bids').insert({
+        auction_id, lead_id: lead.id, amount: numAmount, status: 'rejected',
+        notes: `miniapp-rejected-${Date.now()}`,
+      });
+      await supabase.from('activity_log').insert({
+        entity_type: 'bid', entity_id: auction_id, action: 'bid_rejected',
+        description: `Oferta ${formatARS(numAmount)} rechazada vía Mini App: mínimo ${formatARS(minBid)}`,
+        metadata: { auction_id, amount: numAmount, min_bid: minBid, source: 'miniapp', reason: 'bid_too_low' },
+      });
       return json({ error: `Tu oferta no alcanza el mínimo de ${formatARS(minBid)}.` });
     }
 
-    // Find or create lead by name
-    const lead = await findOrCreateLead(supabase, bidder_name.trim());
+    // Lead already created above
 
     // Create bid
     const { data: newBid, error: bidErr } = await supabase
