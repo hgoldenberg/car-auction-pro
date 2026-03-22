@@ -171,16 +171,44 @@ async function notifyGroups(
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const TELEGRAM_API_KEY = Deno.env.get('TELEGRAM_API_KEY');
-    if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) return;
+    if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) {
+      console.error('notifyGroups: Missing API keys', { LOVABLE_API_KEY: !!LOVABLE_API_KEY, TELEGRAM_API_KEY: !!TELEGRAM_API_KEY });
+      await supabase.from('activity_log').insert({
+        entity_type: 'notification', entity_id: auctionId, action: 'notify_failed',
+        description: `Notificación fallida: faltan API keys para Telegram`,
+        metadata: { auction_id: auctionId, reason: 'missing_api_keys' },
+      });
+      return;
+    }
 
-    const { data: publications } = await supabase
+    const { data: publications, error: pubErr } = await supabase
       .from('auction_group_publications')
-      .select('group_id, telegram_groups(chat_id, is_active, is_real_group)')
+      .select('group_id, telegram_groups(chat_id, is_active, is_real_group, name)')
       .eq('auction_id', auctionId)
       .eq('status', 'posted')
       .eq('publication_type', 'real');
 
-    if (!publications || publications.length === 0) return;
+    console.log('notifyGroups: publications query', { auctionId, count: publications?.length ?? 0, error: pubErr });
+
+    if (pubErr) {
+      console.error('notifyGroups: query error', pubErr);
+      await supabase.from('activity_log').insert({
+        entity_type: 'notification', entity_id: auctionId, action: 'notify_failed',
+        description: `Error consultando publicaciones para notificación`,
+        metadata: { auction_id: auctionId, reason: 'query_error', error: pubErr.message },
+      });
+      return;
+    }
+
+    if (!publications || publications.length === 0) {
+      console.log('notifyGroups: no real publications found for auction', auctionId);
+      await supabase.from('activity_log').insert({
+        entity_type: 'notification', entity_id: auctionId, action: 'notify_skipped',
+        description: `Sin publicaciones reales activas para notificar`,
+        metadata: { auction_id: auctionId, reason: 'no_real_publications' },
+      });
+      return;
+    }
 
     const formatARS = (n: number) =>
       new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
@@ -200,14 +228,16 @@ async function notifyGroups(
 
     const PUBLISHED_URL = 'https://car-auction-pro.lovable.app';
     const miniAppUrl = `${PUBLISHED_URL}/ofertar/${auctionId}`;
-
     const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram';
 
     for (const pub of publications) {
       const group = pub.telegram_groups;
-      if (!group?.chat_id || !group.is_active || !group.is_real_group) continue;
+      if (!group?.chat_id || !group.is_active || !group.is_real_group) {
+        console.log('notifyGroups: skipping group', { chat_id: group?.chat_id, is_active: group?.is_active, is_real_group: group?.is_real_group });
+        continue;
+      }
 
-      await fetch(`${GATEWAY_URL}/sendMessage`, {
+      const resp = await fetch(`${GATEWAY_URL}/sendMessage`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -225,9 +255,31 @@ async function notifyGroups(
           }
         }),
       });
+
+      const respBody = await resp.text();
+      console.log('notifyGroups: Telegram response', { status: resp.status, group: group.name, chat_id: group.chat_id, body: respBody });
+
+      if (!resp.ok) {
+        await supabase.from('activity_log').insert({
+          entity_type: 'notification', entity_id: auctionId, action: 'notify_failed',
+          description: `Error enviando notificación a "${group.name}" (${resp.status})`,
+          metadata: { auction_id: auctionId, group_name: group.name, chat_id: group.chat_id, status: resp.status, error: respBody },
+        });
+      } else {
+        await supabase.from('activity_log').insert({
+          entity_type: 'notification', entity_id: auctionId, action: 'notify_sent',
+          description: `Notificación de nueva oferta líder enviada a "${group.name}"`,
+          metadata: { auction_id: auctionId, group_name: group.name, amount },
+        });
+      }
     }
   } catch (e) {
-    console.error('Error notifying groups:', e);
+    console.error('notifyGroups error:', e);
+    await supabase.from('activity_log').insert({
+      entity_type: 'notification', entity_id: auctionId, action: 'notify_failed',
+      description: `Error inesperado en notificación: ${e instanceof Error ? e.message : String(e)}`,
+      metadata: { auction_id: auctionId, reason: 'exception' },
+    }).catch(() => {});
   }
 }
 
