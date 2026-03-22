@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +23,7 @@ import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AuctionDetail() {
   const { id } = useParams();
@@ -102,6 +103,31 @@ export default function AuctionDetail() {
       return count || 0;
     },
   });
+
+  const { data: galleryViewsByDay } = useQuery({
+    queryKey: ['gallery-views-daily', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('gallery_views')
+        .select('viewed_at')
+        .eq('auction_id', id!)
+        .order('viewed_at');
+      return data || [];
+    },
+  });
+
+  const dailyViewsData = useMemo(() => {
+    if (!galleryViewsByDay?.length) return [];
+    const counts: Record<string, number> = {};
+    galleryViewsByDay.forEach((v: any) => {
+      const day = v.viewed_at.substring(0, 10);
+      counts[day] = (counts[day] || 0) + 1;
+    });
+    return Object.entries(counts).map(([date, count]) => ({
+      date: date.substring(5), // MM-DD
+      vistas: count,
+    }));
+  }, [galleryViewsByDay]);
 
   const { data: leads } = useQuery({
     queryKey: ['leads-for-bid'],
@@ -436,6 +462,30 @@ export default function AuctionDetail() {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Gallery views chart */}
+              {dailyViewsData.length > 0 && (
+                <div className="rounded-lg border bg-card shadow-card">
+                  <div className="p-3 border-b sm:p-4">
+                    <h2 className="text-sm font-semibold flex items-center gap-2">
+                      <Eye className="h-4 w-4" /> Vistas de galería
+                    </h2>
+                  </div>
+                  <div className="p-3 sm:p-4">
+                    <ResponsiveContainer width="100%" height={140}>
+                      <BarChart data={dailyViewsData}>
+                        <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={24} />
+                        <Tooltip
+                          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))' }}
+                          labelFormatter={(v) => `Fecha: ${v}`}
+                        />
+                        <Bar dataKey="vistas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               )}
