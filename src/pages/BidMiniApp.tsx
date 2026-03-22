@@ -60,7 +60,7 @@ export default function BidMiniApp() {
   const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
 
   const handleSubmit = async () => {
-    if (!data || !auctionId) return;
+    if (!data || !auctionId || submitting) return;
 
     if (!bidderName.trim()) {
       setResult({ success: false, message: 'Ingresá tu nombre para identificarte.' });
