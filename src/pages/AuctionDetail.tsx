@@ -92,6 +92,17 @@ export default function AuctionDetail() {
     },
   });
 
+  const { data: galleryViewCount } = useQuery({
+    queryKey: ['gallery-views', id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('gallery_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('auction_id', id!);
+      return count || 0;
+    },
+  });
+
   const { data: leads } = useQuery({
     queryKey: ['leads-for-bid'],
     queryFn: async () => {
