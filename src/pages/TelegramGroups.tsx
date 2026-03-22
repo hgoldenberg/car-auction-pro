@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { EditTelegramGroupDialog } from '@/components/EditTelegramGroupDialog';
-import { Send, Hash, MessageSquare, Settings } from 'lucide-react';
+import { Send, Hash, MessageSquare, Settings, Plus } from 'lucide-react';
 
 export default function TelegramGroups() {
   const isMobile = useIsMobile();
