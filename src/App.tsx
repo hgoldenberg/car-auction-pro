@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -5,18 +6,26 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Vehicles from "./pages/Vehicles";
-import VehicleForm from "./pages/VehicleForm";
-import Auctions from "./pages/Auctions";
-import AuctionForm from "./pages/AuctionForm";
-import AuctionDetail from "./pages/AuctionDetail";
-import TelegramGroups from "./pages/TelegramGroups";
-import CRM from "./pages/CRM";
-import LeadDetail from "./pages/LeadDetail";
-import ActivityLog from "./pages/ActivityLog";
-import VehicleGallery from "./pages/VehicleGallery";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded routes for code splitting
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Vehicles = lazy(() => import("./pages/Vehicles"));
+const VehicleForm = lazy(() => import("./pages/VehicleForm"));
+const Auctions = lazy(() => import("./pages/Auctions"));
+const AuctionForm = lazy(() => import("./pages/AuctionForm"));
+const AuctionDetail = lazy(() => import("./pages/AuctionDetail"));
+const TelegramGroups = lazy(() => import("./pages/TelegramGroups"));
+const CRM = lazy(() => import("./pages/CRM"));
+const LeadDetail = lazy(() => import("./pages/LeadDetail"));
+const ActivityLog = lazy(() => import("./pages/ActivityLog"));
+const VehicleGallery = lazy(() => import("./pages/VehicleGallery"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center text-muted-foreground">
+    Cargando...
+  </div>
+);
 
 const queryClient = new QueryClient();
 
