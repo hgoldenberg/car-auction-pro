@@ -54,6 +54,16 @@ Deno.serve(async (req) => {
       new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(n);
 
     if (numAmount < minBid) {
+      // Record rejected bid for audit trail (consistent with bot handler)
+      await supabase.from('bids').insert({
+        auction_id, lead_id: lead.id, amount: numAmount, status: 'rejected',
+        notes: `miniapp-rejected-${Date.now()}`,
+      });
+      await supabase.from('activity_log').insert({
+        entity_type: 'bid', entity_id: auction_id, action: 'bid_rejected',
+        description: `Oferta ${formatARS(numAmount)} rechazada vía Mini App: mínimo ${formatARS(minBid)}`,
+        metadata: { auction_id, amount: numAmount, min_bid: minBid, source: 'miniapp', reason: 'bid_too_low' },
+      });
       return json({ error: `Tu oferta no alcanza el mínimo de ${formatARS(minBid)}.` });
     }
 
