@@ -129,20 +129,22 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
                     <label
                       key={g.id}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selectedIds.includes(g.id) ? 'bg-telegram/5 border-telegram/30' : 'hover:bg-accent/50'
-                      } ${alreadyPublished ? 'opacity-60' : ''}`}
+                        selectedIds.includes(g.id)
+                          ? alreadyPublished ? 'bg-amber-50 border-amber-300' : 'bg-telegram/5 border-telegram/30'
+                          : 'hover:bg-accent/50'
+                      }`}
                     >
                       <Checkbox
                         checked={selectedIds.includes(g.id)}
                         onCheckedChange={() => toggle(g.id)}
-                        disabled={alreadyPublished}
+                        disabled={!g.chat_id}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">{g.name}</p>
                         <p className="text-xs text-muted-foreground font-mono">{g.chat_id || 'Sin chat_id'}</p>
                       </div>
                       {alreadyPublished && (
-                        <Badge variant="secondary" className="text-xs shrink-0">Ya publicado</Badge>
+                        <Badge variant="outline" className="text-xs shrink-0 border-amber-400 text-amber-700">Republicar</Badge>
                       )}
                       {!g.chat_id && (
                         <Badge variant="destructive" className="text-xs shrink-0">Sin ID</Badge>
