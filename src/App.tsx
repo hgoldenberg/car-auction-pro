@@ -19,6 +19,7 @@ const CRM = lazy(() => import("./pages/CRM"));
 const LeadDetail = lazy(() => import("./pages/LeadDetail"));
 const ActivityLog = lazy(() => import("./pages/ActivityLog"));
 const VehicleGallery = lazy(() => import("./pages/VehicleGallery"));
+const BidMiniApp = lazy(() => import("./pages/BidMiniApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
