@@ -155,7 +155,7 @@ export default function VehicleGallery() {
   const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
   const currentImage = images[currentIndex];
   const imageUrl = getVehicleImageUrl(currentImage.storage_path);
-  const botDeepLink = `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction.id}`;
+  const bidLink = `/ofertar/${auction.id}`;
 
   // Fullscreen overlay
   if (fullscreen) {
@@ -320,12 +320,10 @@ export default function VehicleGallery() {
         </div>
         {auction.status === 'active' && (
           <a
-            href={botDeepLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full text-center py-2.5 rounded-lg bg-[#0088cc] hover:bg-[#0077b5] text-white text-sm font-medium transition"
+            href={bidLink}
+            className="block w-full text-center py-2.5 rounded-lg bg-[#00d4aa] hover:bg-[#00c49a] text-[#1a1a2e] text-sm font-bold transition"
           >
-            💬 Ofertar en privado
+            💰 Ofertar
           </a>
         )}
       </div>

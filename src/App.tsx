@@ -19,6 +19,7 @@ const CRM = lazy(() => import("./pages/CRM"));
 const LeadDetail = lazy(() => import("./pages/LeadDetail"));
 const ActivityLog = lazy(() => import("./pages/ActivityLog"));
 const VehicleGallery = lazy(() => import("./pages/VehicleGallery"));
+const BidMiniApp = lazy(() => import("./pages/BidMiniApp"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageLoader = () => (
@@ -58,6 +59,7 @@ function AppRoutes() {
         <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
         <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
         <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
+        <Route path="/ofertar/:auctionId" element={<BidMiniApp />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
