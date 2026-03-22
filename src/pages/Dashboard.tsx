@@ -70,10 +70,11 @@ export default function Dashboard() {
     <AppLayout>
       <PageHeader title="Dashboard" description="Panel de control de subastas" />
 
-      <div className="grid grid-cols-2 gap-3 mb-7 sm:gap-4 lg:grid-cols-4 lg:mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-7 sm:gap-4 lg:grid-cols-5 lg:mb-8">
         <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} />
         <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} />
         <KPICard title="Ofertas" value={bids || 0} icon={<DollarSign className="h-4 w-4" />} />
+        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales" />
         <KPICard title="Leads" value={pendingLeads.length} icon={<Users className="h-4 w-4" />} description="Pendientes de gestión" />
       </div>
 
