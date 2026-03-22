@@ -466,6 +466,30 @@ export default function AuctionDetail() {
                 </div>
               )}
 
+              {/* Gallery views chart */}
+              {dailyViewsData.length > 0 && (
+                <div className="rounded-lg border bg-card shadow-card">
+                  <div className="p-3 border-b sm:p-4">
+                    <h2 className="text-sm font-semibold flex items-center gap-2">
+                      <Eye className="h-4 w-4" /> Vistas de galería
+                    </h2>
+                  </div>
+                  <div className="p-3 sm:p-4">
+                    <ResponsiveContainer width="100%" height={140}>
+                      <BarChart data={dailyViewsData}>
+                        <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} width={24} />
+                        <Tooltip
+                          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid hsl(var(--border))' }}
+                          labelFormatter={(v) => `Fecha: ${v}`}
+                        />
+                        <Bar dataKey="vistas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
               {/* Activity */}
               <div className="rounded-lg border bg-card shadow-card">
                 <div className="p-3 border-b sm:p-4">
