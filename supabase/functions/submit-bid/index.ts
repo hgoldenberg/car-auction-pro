@@ -43,6 +43,9 @@ Deno.serve(async (req) => {
       return json({ error: 'Esta subasta no está activa. No se aceptan ofertas.' });
     }
 
+    // Find or create lead early (needed for rejected bid recording too)
+    const lead = await findOrCreateLead(supabase, bidder_name.trim());
+
     // Validate minimum
     const currentHigh = auction.current_high_bid || 0;
     const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction.starting_price || 0);
