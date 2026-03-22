@@ -23,6 +23,7 @@ import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AuctionDetail() {
   const { id } = useParams();
