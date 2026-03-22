@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,18 @@ export default function VehicleGallery() {
   const pinchRef = useRef({ startDist: 0, startScale: 1 });
   const panRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, isPanning: false });
   const touchStartX = useRef(0);
+
+  // Record gallery view once on mount
+  const viewRecorded = useRef(false);
+  useEffect(() => {
+    if (!auctionId || viewRecorded.current) return;
+    viewRecorded.current = true;
+    supabase.from('gallery_views').insert({
+      auction_id: auctionId,
+      user_agent: navigator.userAgent,
+      referrer: document.referrer || null,
+    } as any).then(() => {});
+  }, [auctionId]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['gallery', auctionId],

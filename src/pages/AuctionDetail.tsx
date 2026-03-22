@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle } from 'lucide-react';
+import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle, Eye } from 'lucide-react';
 import { TelegramPublishDialog } from '@/components/TelegramPublishDialog';
 import { ACTIVITY_ACTIONS } from '@/lib/types';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
@@ -89,6 +89,17 @@ export default function AuctionDetail() {
         .order('created_at', { ascending: false })
         .limit(15);
       return data || [];
+    },
+  });
+
+  const { data: galleryViewCount } = useQuery({
+    queryKey: ['gallery-views', id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('gallery_views')
+        .select('*', { count: 'exact', head: true })
+        .eq('auction_id', id!);
+      return count || 0;
     },
   });
 
@@ -254,10 +265,11 @@ export default function AuctionDetail() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-2 mb-4 sm:grid-cols-4 sm:gap-3 sm:mb-5">
+      <div className="grid grid-cols-2 gap-2 mb-4 sm:grid-cols-5 sm:gap-3 sm:mb-5">
         <KPICard title="Inicio" value={formatCurrency(auction.starting_price)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Líder" value={formatCurrency(auction.current_high_bid)} icon={<DollarSign className="h-3.5 w-3.5" />} />
         <KPICard title="Ofertas" value={auction.bid_count || '-'} icon={<Users className="h-3.5 w-3.5" />} description={auction.bid_count ? `${uniqueBidders} oferentes` : undefined} />
+        <KPICard title="Galería" value={galleryViewCount ?? 0} icon={<Eye className="h-3.5 w-3.5" />} description="vistas" />
         <KPICard title="Cierre" value={timeRemaining(auction.end_date)} icon={<Clock className="h-3.5 w-3.5" />} />
       </div>
 
