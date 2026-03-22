@@ -67,8 +67,7 @@ Deno.serve(async (req) => {
       return json({ error: `Tu oferta no alcanza el mínimo de ${formatARS(minBid)}.` });
     }
 
-    // Find or create lead by name
-    const lead = await findOrCreateLead(supabase, bidder_name.trim());
+    // Lead already created above
 
     // Create bid
     const { data: newBid, error: bidErr } = await supabase
