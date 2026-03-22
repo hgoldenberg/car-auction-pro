@@ -50,6 +50,32 @@ export default function Dashboard() {
     },
   });
 
+  const { data: galleryViewsDaily } = useQuery({
+    queryKey: ['gallery-views-daily'],
+    queryFn: async () => {
+      const since = subDays(new Date(), 6).toISOString();
+      const { data } = await supabase
+        .from('gallery_views')
+        .select('viewed_at')
+        .gte('viewed_at', since);
+      return data || [];
+    },
+  });
+
+  const dailySparkline = useMemo(() => {
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = subDays(new Date(), 6 - i);
+      return format(d, 'MM-dd');
+    });
+    const counts: Record<string, number> = {};
+    days.forEach(d => (counts[d] = 0));
+    galleryViewsDaily?.forEach((v) => {
+      const key = format(new Date(v.viewed_at), 'MM-dd');
+      if (counts[key] !== undefined) counts[key]++;
+    });
+    return days.map(d => ({ date: d, v: counts[d] }));
+  }, [galleryViewsDaily]);
+
   const { data: activity } = useQuery({
     queryKey: ['activity-recent'],
     queryFn: async () => {
