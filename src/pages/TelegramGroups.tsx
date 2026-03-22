@@ -43,7 +43,12 @@ export default function TelegramGroups() {
 
   return (
     <AppLayout>
-      <PageHeader title="Grupos Telegram" description="Grupos configurados y feed demo de publicaciones" />
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <PageHeader title="Grupos Telegram" description="Grupos configurados y feed demo de publicaciones" />
+        <Button size="sm" className="rounded-lg gap-1.5 shrink-0" onClick={() => setShowCreateDialog(true)}>
+          <Plus className="h-4 w-4" /> {!isMobile && 'Nuevo grupo'}
+        </Button>
+      </div>
 
       <Tabs defaultValue="groups" className="space-y-4">
         <TabsList>
