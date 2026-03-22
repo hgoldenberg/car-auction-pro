@@ -102,9 +102,15 @@ export default function BidMiniApp() {
   };
 
   const handleAmountChange = (val: string) => {
-    setBidInput(val.replace(/[^\d]/g, ''));
+    const digits = val.replace(/[^\d]/g, '');
+    setBidInput(digits);
     if (result && !result.success) setResult(null);
   };
+
+  // Format display value with thousand separators
+  const displayAmount = bidInput
+    ? `$ ${parseInt(bidInput, 10).toLocaleString('es-AR')}`
+    : '';
 
   if (isLoading) {
     return (
@@ -205,7 +211,7 @@ export default function BidMiniApp() {
           <input
             type="text"
             inputMode="numeric"
-            value={bidInput}
+            value={displayAmount}
             onChange={(e) => handleAmountChange(e.target.value)}
             className={`w-full h-12 rounded-lg bg-white/10 border px-3 text-lg font-bold tabular-nums text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00d4aa]/50 focus:border-[#00d4aa]/50 mb-1 transition ${
               isBelowMin ? 'border-red-400/50' : 'border-white/10'
