@@ -102,9 +102,15 @@ export default function BidMiniApp() {
   };
 
   const handleAmountChange = (val: string) => {
-    setBidInput(val.replace(/[^\d]/g, ''));
+    const digits = val.replace(/[^\d]/g, '');
+    setBidInput(digits);
     if (result && !result.success) setResult(null);
   };
+
+  // Format display value with thousand separators
+  const displayAmount = bidInput
+    ? `$ ${parseInt(bidInput, 10).toLocaleString('es-AR')}`
+    : '';
 
   if (isLoading) {
     return (
