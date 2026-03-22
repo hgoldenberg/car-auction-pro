@@ -16,6 +16,18 @@ export default function VehicleGallery() {
   const panRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, isPanning: false });
   const touchStartX = useRef(0);
 
+  // Record gallery view once on mount
+  const viewRecorded = useRef(false);
+  useEffect(() => {
+    if (!auctionId || viewRecorded.current) return;
+    viewRecorded.current = true;
+    supabase.from('gallery_views').insert({
+      auction_id: auctionId,
+      user_agent: navigator.userAgent,
+      referrer: document.referrer || null,
+    } as any).then(() => {});
+  }, [auctionId]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['gallery', auctionId],
     queryFn: async () => {
