@@ -1,14 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
-import { ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Camera, X, ZoomIn } from 'lucide-react';
 
 export default function VehicleGallery() {
   const { auctionId } = useParams();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const pinchRef = useRef({ startDist: 0, startScale: 1 });
+  const panRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, isPanning: false });
+  const touchStartX = useRef(0);
 
   const { data, isLoading } = useQuery({
     queryKey: ['gallery', auctionId],
@@ -34,6 +40,87 @@ export default function VehicleGallery() {
     },
   });
 
+  const resetZoom = useCallback(() => {
+    setScale(1);
+    setTranslate({ x: 0, y: 0 });
+  }, []);
+
+  const goNext = useCallback(() => {
+    setCurrentIndex((i) => Math.min(i + 1, (data?.images.length || 1) - 1));
+    resetZoom();
+  }, [data, resetZoom]);
+
+  const goPrev = useCallback(() => {
+    setCurrentIndex((i) => Math.max(i - 1, 0));
+    resetZoom();
+  }, [resetZoom]);
+
+  const openFullscreen = useCallback(() => {
+    setFullscreen(true);
+    resetZoom();
+  }, [resetZoom]);
+
+  const closeFullscreen = useCallback(() => {
+    setFullscreen(false);
+    resetZoom();
+  }, [resetZoom]);
+
+  // Swipe handler for gallery navigation (non-fullscreen or fullscreen at scale=1)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch start
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      pinchRef.current = { startDist: dist, startScale: scale };
+      return;
+    }
+    touchStartX.current = e.touches[0].clientX;
+    if (scale > 1) {
+      panRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY, lastX: translate.x, lastY: translate.y, isPanning: true };
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const newScale = Math.min(4, Math.max(1, pinchRef.current.startScale * (dist / pinchRef.current.startDist)));
+      setScale(newScale);
+      if (newScale <= 1) setTranslate({ x: 0, y: 0 });
+      return;
+    }
+    if (scale > 1 && panRef.current.isPanning) {
+      const dx = e.touches[0].clientX - panRef.current.startX;
+      const dy = e.touches[0].clientY - panRef.current.startY;
+      setTranslate({ x: panRef.current.lastX + dx, y: panRef.current.lastY + dy });
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    panRef.current.isPanning = false;
+    if (scale <= 1) {
+      const delta = e.changedTouches[0].clientX - touchStartX.current;
+      if (Math.abs(delta) > 50) {
+        if (delta < 0) goNext();
+        else goPrev();
+      }
+    }
+    if (scale < 1.1) resetZoom();
+  };
+
+  const handleDoubleClick = () => {
+    if (fullscreen) {
+      if (scale > 1) resetZoom();
+      else { setScale(2.5); setTranslate({ x: 0, y: 0 }); }
+    } else {
+      openFullscreen();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -56,25 +143,66 @@ export default function VehicleGallery() {
   const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
   const currentImage = images[currentIndex];
   const imageUrl = getVehicleImageUrl(currentImage.storage_path);
-
-  const goNext = () => setCurrentIndex((i) => Math.min(i + 1, images.length - 1));
-  const goPrev = () => setCurrentIndex((i) => Math.max(i - 1, 0));
-
-  // Touch swipe support
-  let touchStartX = 0;
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX = e.touches[0].clientX;
-  };
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const delta = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(delta) > 50) {
-      if (delta < 0) goNext();
-      else goPrev();
-    }
-  };
-
   const botDeepLink = `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction.id}`;
 
+  // Fullscreen overlay
+  if (fullscreen) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col select-none">
+        {/* Fullscreen header */}
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 z-10">
+          <span className="text-xs text-white/50 tabular-nums">{currentIndex + 1} / {images.length}</span>
+          <button onClick={closeFullscreen} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+            <X className="h-5 w-5 text-white" />
+          </button>
+        </div>
+
+        {/* Zoomable image */}
+        <div
+          className="flex-1 flex items-center justify-center overflow-hidden touch-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onDoubleClick={handleDoubleClick}
+        >
+          <img
+            key={currentImage.id}
+            src={imageUrl}
+            alt={`${vehicleTitle} - Foto ${currentIndex + 1}`}
+            className="max-w-full max-h-full object-contain transition-transform duration-100"
+            style={{ transform: `scale(${scale}) translate(${translate.x / scale}px, ${translate.y / scale}px)` }}
+            draggable={false}
+          />
+
+          {/* Desktop arrows */}
+          {images.length > 1 && scale <= 1 && (
+            <>
+              <button onClick={goPrev} disabled={currentIndex === 0}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition disabled:opacity-20 hidden sm:flex">
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button onClick={goNext} disabled={currentIndex === images.length - 1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white transition disabled:opacity-20 hidden sm:flex">
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Dots */}
+        {images.length > 1 && (
+          <div className="flex items-center justify-center gap-1.5 py-3 shrink-0">
+            {images.map((_, i) => (
+              <button key={i} onClick={() => { setCurrentIndex(i); resetZoom(); }}
+                className={`w-2 h-2 rounded-full transition-all ${i === currentIndex ? 'bg-white w-4' : 'bg-white/30'}`} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Normal gallery view
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header */}
@@ -90,9 +218,10 @@ export default function VehicleGallery() {
 
       {/* Image viewer */}
       <div
-        className="flex-1 relative flex items-center justify-center overflow-hidden select-none"
+        className="flex-1 relative flex items-center justify-center overflow-hidden select-none cursor-zoom-in"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        onClick={openFullscreen}
       >
         <img
           key={currentImage.id}
@@ -102,18 +231,23 @@ export default function VehicleGallery() {
           draggable={false}
         />
 
+        {/* Zoom hint */}
+        <div className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/50">
+          <ZoomIn className="h-4 w-4" />
+        </div>
+
         {/* Navigation arrows - desktop */}
         {images.length > 1 && (
           <>
             <button
-              onClick={goPrev}
+              onClick={(e) => { e.stopPropagation(); goPrev(); }}
               disabled={currentIndex === 0}
               className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition disabled:opacity-20 disabled:cursor-default hidden sm:flex"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
-              onClick={goNext}
+              onClick={(e) => { e.stopPropagation(); goNext(); }}
               disabled={currentIndex === images.length - 1}
               className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition disabled:opacity-20 disabled:cursor-default hidden sm:flex"
             >
