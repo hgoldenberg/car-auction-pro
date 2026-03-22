@@ -19,6 +19,7 @@ export default function TelegramGroups() {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [chatAuction, setChatAuction] = useState<{ id: string; title: string } | null>(null);
   const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const { data: groups, isLoading } = useQuery({
