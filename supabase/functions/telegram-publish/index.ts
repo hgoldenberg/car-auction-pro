@@ -119,11 +119,16 @@ Deno.serve(async (req) => {
       `⏰ Cierre: ${closeDateText}`,
     ].filter(Boolean).join('\n');
 
-    // Inline keyboard button with deep link context
+    // Gallery URL (public page)
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://car-auction-pro.lovable.app';
+    const galleryUrl = `${siteUrl}/galeria/${auction_id}`;
+
+    // Inline keyboard buttons
     const reply_markup = {
-      inline_keyboard: [[
-        { text: '💬 Ofertar en privado', url: `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction_id}` }
-      ]]
+      inline_keyboard: [
+        [{ text: '💬 Ofertar en privado', url: `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction_id}` }],
+        [{ text: '📸 Ver galería', url: galleryUrl }],
+      ]
     };
 
     const results: Array<{ group_id: string; group_name: string; success: boolean; message_id?: number; error?: string }> = [];

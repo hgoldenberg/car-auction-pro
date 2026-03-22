@@ -147,13 +147,23 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
                     imageUrl={imgUrl}
                   >
                     {onBidClick && auction.status === 'active' && (
-                      <Button
-                        size="sm"
-                        className="mt-2 w-full bg-telegram hover:bg-telegram/90 text-white text-xs"
-                        onClick={() => onBidClick(auction.id, vehicleTitle)}
-                      >
-                        💬 Ofertar en privado
-                      </Button>
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        <Button
+                          size="sm"
+                          className="w-full bg-telegram hover:bg-telegram/90 text-white text-xs"
+                          onClick={() => onBidClick(auction.id, vehicleTitle)}
+                        >
+                          💬 Ofertar en privado
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs"
+                          onClick={() => window.open(`/galeria/${auction.id}`, '_blank')}
+                        >
+                          📸 Ver galería
+                        </Button>
+                      </div>
                     )}
                   </TelegramMessage>
                 </div>

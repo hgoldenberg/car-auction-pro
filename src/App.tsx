@@ -15,6 +15,7 @@ import TelegramGroups from "./pages/TelegramGroups";
 import CRM from "./pages/CRM";
 import LeadDetail from "./pages/LeadDetail";
 import ActivityLog from "./pages/ActivityLog";
+import VehicleGallery from "./pages/VehicleGallery";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ function AppRoutes() {
       <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
       <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
       <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+      <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
