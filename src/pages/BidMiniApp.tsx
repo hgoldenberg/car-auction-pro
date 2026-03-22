@@ -4,9 +4,22 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
-import { Shield, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Loader2, Zap } from 'lucide-react';
 
 const MIN_BID_INCREMENT = 50000;
+
+function humanizeError(raw: string): string {
+  if (!raw) return 'Ocurrió un error inesperado. Intentá de nuevo.';
+  const lower = raw.toLowerCase();
+  if (lower.includes('edge function') || lower.includes('non-2xx') || lower.includes('failed to fetch') || lower.includes('networkerror')) {
+    return 'No pudimos procesar tu oferta. Probá nuevamente en unos segundos.';
+  }
+  if (lower.includes('fetch') || lower.includes('timeout') || lower.includes('aborted')) {
+    return 'La conexión falló. Verificá tu internet e intentá de nuevo.';
+  }
+  // Backend errors are already in Spanish — pass through
+  return raw;
+}
 
 export default function BidMiniApp() {
   const { auctionId } = useParams();
@@ -28,7 +41,6 @@ export default function BidMiniApp() {
       const vehicle = (auction as any).vehicles;
       if (!vehicle) return null;
 
-      // Get main image
       const { data: mainImg } = await supabase
         .from('vehicle_images')
         .select('storage_path')
@@ -45,16 +57,17 @@ export default function BidMiniApp() {
     },
   });
 
+  const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
+
   const handleSubmit = async () => {
     if (!data || !auctionId) return;
 
-    const amount = parseInt(bidInput.replace(/\D/g, ''), 10);
-    if (!amount || amount <= 0) {
-      setResult({ success: false, message: 'Ingresá un monto numérico válido.' });
-      return;
-    }
     if (!bidderName.trim()) {
       setResult({ success: false, message: 'Ingresá tu nombre para identificarte.' });
+      return;
+    }
+    if (parsedAmount <= 0) {
+      setResult({ success: false, message: 'Ingresá un monto numérico válido.' });
       return;
     }
 
@@ -63,22 +76,34 @@ export default function BidMiniApp() {
 
     try {
       const { data: resp, error } = await supabase.functions.invoke('submit-bid', {
-        body: { auction_id: auctionId, amount, bidder_name: bidderName.trim() },
+        body: { auction_id: auctionId, amount: parsedAmount, bidder_name: bidderName.trim() },
       });
 
       if (error) throw new Error(error.message);
       if (resp?.error) {
-        setResult({ success: false, message: resp.error });
+        setResult({ success: false, message: humanizeError(resp.error) });
       } else {
-        setResult({ success: true, message: `¡Oferta de ${formatCurrency(amount)} registrada! Sos el nuevo líder.` });
+        setResult({ success: true, message: `¡Oferta de ${formatCurrency(parsedAmount)} registrada! Sos el nuevo líder.` });
         setBidInput('');
         refetch();
       }
     } catch (e: any) {
-      setResult({ success: false, message: e.message || 'Error al enviar la oferta.' });
+      setResult({ success: false, message: humanizeError(e.message || '') });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleFillMin = () => {
+    if (data) {
+      setBidInput(String(data.minBid));
+      setResult(null);
+    }
+  };
+
+  const handleAmountChange = (val: string) => {
+    setBidInput(val.replace(/[^\d]/g, ''));
+    if (result && !result.success) setResult(null);
   };
 
   if (isLoading) {
@@ -94,7 +119,7 @@ export default function BidMiniApp() {
       <div className="min-h-screen bg-[#1a1a2e] flex flex-col items-center justify-center text-white/70 p-6 text-center">
         <AlertCircle className="h-10 w-10 mb-3 opacity-50" />
         <p className="text-base font-medium">Subasta no disponible</p>
-        <p className="text-sm mt-1 text-white/40">Esta subasta no existe o no está activa.</p>
+        <p className="text-sm mt-1 text-white/40">Esta subasta no existe o ya finalizó.</p>
       </div>
     );
   }
@@ -102,17 +127,16 @@ export default function BidMiniApp() {
   const { auction, vehicle, photoUrl, minBid } = data;
   const vehicleTitle = `${vehicle.make} ${vehicle.model} ${vehicle.year}`;
   const isActive = auction.status === 'active';
+  const formattedInput = parsedAmount > 0 ? formatCurrency(parsedAmount) : '';
+  const isBelowMin = parsedAmount > 0 && parsedAmount < minBid;
+  const canSubmit = !submitting && bidderName.trim().length > 0 && parsedAmount >= minBid;
 
   return (
     <div className="min-h-screen bg-[#1a1a2e] text-white flex flex-col">
       {/* Vehicle hero */}
       <div className="relative">
         {photoUrl ? (
-          <img
-            src={photoUrl}
-            alt={vehicleTitle}
-            className="w-full aspect-[16/10] object-cover"
-          />
+          <img src={photoUrl} alt={vehicleTitle} className="w-full aspect-[16/10] object-cover" />
         ) : (
           <div className="w-full aspect-[16/10] bg-white/5 flex items-center justify-center text-white/20 text-sm">
             Sin foto
@@ -126,7 +150,7 @@ export default function BidMiniApp() {
       </div>
 
       {/* Bid info */}
-      <div className="px-4 pt-3 pb-2 space-y-3">
+      <div className="px-4 pt-3 pb-2 space-y-2">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-white/40">Oferta líder</p>
@@ -135,8 +159,8 @@ export default function BidMiniApp() {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-white/40">Mínimo</p>
-            <p className="text-sm font-semibold tabular-nums text-white/80">{formatCurrency(minBid)}</p>
+            <p className="text-[10px] uppercase tracking-wider text-white/40">Mínimo válido</p>
+            <p className="text-base font-bold tabular-nums text-white">{formatCurrency(minBid)}</p>
           </div>
         </div>
 
@@ -166,17 +190,41 @@ export default function BidMiniApp() {
             placeholder="Nombre o alias"
           />
 
-          {/* Amount input */}
-          <label className="text-xs text-white/50 mb-1">Monto de tu oferta (ARS)</label>
+          {/* Amount input with quick fill */}
+          <div className="flex items-end justify-between mb-1">
+            <label className="text-xs text-white/50">Monto de tu oferta (ARS)</label>
+            <button
+              type="button"
+              onClick={handleFillMin}
+              className="flex items-center gap-1 text-[11px] text-[#00d4aa] hover:text-[#00e4ba] transition font-medium"
+            >
+              <Zap className="h-3 w-3" />
+              Ofertar mínimo
+            </button>
+          </div>
           <input
             type="text"
             inputMode="numeric"
             value={bidInput}
-            onChange={(e) => setBidInput(e.target.value.replace(/[^\d]/g, ''))}
-            className="w-full h-12 rounded-lg bg-white/10 border border-white/10 px-3 text-lg font-bold tabular-nums text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00d4aa]/50 focus:border-[#00d4aa]/50 mb-1"
-            placeholder={minBid.toLocaleString('es-AR')}
+            onChange={(e) => handleAmountChange(e.target.value)}
+            className={`w-full h-12 rounded-lg bg-white/10 border px-3 text-lg font-bold tabular-nums text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00d4aa]/50 focus:border-[#00d4aa]/50 mb-1 transition ${
+              isBelowMin ? 'border-red-400/50' : 'border-white/10'
+            }`}
+            placeholder={formatCurrency(minBid)}
           />
-          <p className="text-[10px] text-white/30 mb-4">Incremento mínimo: {formatCurrency(MIN_BID_INCREMENT)}</p>
+
+          {/* Live feedback under input */}
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] text-white/30">
+              Incremento mínimo: {formatCurrency(MIN_BID_INCREMENT)}
+            </p>
+            {parsedAmount > 0 && (
+              <p className={`text-[11px] font-medium tabular-nums ${isBelowMin ? 'text-red-400' : 'text-[#00d4aa]'}`}>
+                {formattedInput}
+                {isBelowMin && ' — no alcanza'}
+              </p>
+            )}
+          </div>
 
           {/* Result message */}
           {result && (
@@ -191,11 +239,17 @@ export default function BidMiniApp() {
           {/* Submit button */}
           <button
             onClick={handleSubmit}
-            disabled={submitting || !bidInput.trim() || !bidderName.trim()}
+            disabled={!canSubmit}
             className="w-full h-12 rounded-lg bg-[#00d4aa] hover:bg-[#00c49a] text-[#1a1a2e] font-bold text-base transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {submitting ? 'Enviando...' : 'Enviar oferta'}
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              'Enviar oferta'
+            )}
           </button>
 
           {/* Gallery link */}
@@ -208,7 +262,7 @@ export default function BidMiniApp() {
         </div>
       ) : (
         <div className="flex-1 px-4 pb-6 flex flex-col items-center justify-center text-center">
-          <p className="text-base font-medium text-white/70">Esta subasta no está activa</p>
+          <p className="text-base font-medium text-white/70">Esta subasta ya no está activa</p>
           <p className="text-sm text-white/40 mt-1">No se aceptan ofertas en este momento.</p>
         </div>
       )}
