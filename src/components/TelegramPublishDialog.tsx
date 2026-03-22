@@ -165,7 +165,13 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
                 {publishMutation.isPending ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Publicando...</>
                 ) : (
-                  <><Send className="h-4 w-4" /> Publicar ({selectedIds.length})</>
+                  <>
+                    <Send className="h-4 w-4" />
+                    {selectedIds.some(id => publishedGroupIds.has(id))
+                      ? `Publicar / Republicar (${selectedIds.length})`
+                      : `Publicar (${selectedIds.length})`
+                    }
+                  </>
                 )}
               </Button>
             </DialogFooter>
