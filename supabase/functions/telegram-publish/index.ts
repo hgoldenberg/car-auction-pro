@@ -123,10 +123,11 @@ Deno.serve(async (req) => {
     const siteUrl = Deno.env.get('SITE_URL') || 'https://car-auction-pro.lovable.app';
     const galleryUrl = `${siteUrl}/galeria/${auction_id}`;
 
-    // Inline keyboard buttons
+    // Inline keyboard buttons — Mini App for bidding
+    const bidUrl = `${siteUrl}/ofertar/${auction_id}`;
     const reply_markup = {
       inline_keyboard: [
-        [{ text: '💬 Ofertar en privado', url: `https://t.me/SubastaPrivadaAutoDemoBot?start=${auction_id}` }],
+        [{ text: '💰 Ofertar', url: bidUrl }],
         [{ text: '📸 Ver galería', url: galleryUrl }],
       ]
     };

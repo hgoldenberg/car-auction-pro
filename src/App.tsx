@@ -59,6 +59,7 @@ function AppRoutes() {
         <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
         <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
         <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
+        <Route path="/ofertar/:auctionId" element={<BidMiniApp />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
