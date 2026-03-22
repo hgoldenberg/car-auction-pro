@@ -8,6 +8,9 @@ import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
 import { Gavel, DollarSign, Users, Clock, Activity, Eye } from 'lucide-react';
 import type { AuctionStatus } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { format, subDays } from 'date-fns';
 
 export default function Dashboard() {
   const navigate = useNavigate();
