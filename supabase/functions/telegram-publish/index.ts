@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
     const bidUrl = `${siteUrl}/ofertar/${auction_id}`;
     const reply_markup = {
       inline_keyboard: [
-        [{ text: '💰 Ofertar', url: bidUrl }],
+        [{ text: '💰 Ofertar', web_app: { url: bidUrl } }],
         [{ text: '📸 Ver galería', url: galleryUrl }],
       ]
     };
