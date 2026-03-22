@@ -103,7 +103,17 @@ export default function Dashboard() {
         <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} />
         <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} />
         <KPICard title="Ofertas" value={bids || 0} icon={<DollarSign className="h-4 w-4" />} />
-        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales" />
+        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales">
+          {dailySparkline.some(d => d.v > 0) && (
+            <div className="mt-1.5 h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailySparkline}>
+                  <Bar dataKey="v" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </KPICard>
         <KPICard title="Leads" value={pendingLeads.length} icon={<Users className="h-4 w-4" />} description="Pendientes de gestión" />
       </div>
 
