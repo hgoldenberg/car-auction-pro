@@ -1,0 +1,1 @@
+UPDATE auction_group_publications SET publication_type = 'real' WHERE auction_id = 'c0000001-0001-0001-0001-000000000001' AND group_id = 'b0000001-0001-0001-0001-000000000001';
