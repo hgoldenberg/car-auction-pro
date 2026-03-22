@@ -8,6 +8,9 @@ import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
 import { Gavel, DollarSign, Users, Clock, Activity, Eye } from 'lucide-react';
 import type { AuctionStatus } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { BarChart, Bar, ResponsiveContainer } from 'recharts';
+import { format, subDays } from 'date-fns';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -47,6 +50,32 @@ export default function Dashboard() {
     },
   });
 
+  const { data: galleryViewsDaily } = useQuery({
+    queryKey: ['gallery-views-daily'],
+    queryFn: async () => {
+      const since = subDays(new Date(), 6).toISOString();
+      const { data } = await supabase
+        .from('gallery_views')
+        .select('viewed_at')
+        .gte('viewed_at', since);
+      return data || [];
+    },
+  });
+
+  const dailySparkline = useMemo(() => {
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = subDays(new Date(), 6 - i);
+      return format(d, 'MM-dd');
+    });
+    const counts: Record<string, number> = {};
+    days.forEach(d => (counts[d] = 0));
+    galleryViewsDaily?.forEach((v) => {
+      const key = format(new Date(v.viewed_at), 'MM-dd');
+      if (counts[key] !== undefined) counts[key]++;
+    });
+    return days.map(d => ({ date: d, v: counts[d] }));
+  }, [galleryViewsDaily]);
+
   const { data: activity } = useQuery({
     queryKey: ['activity-recent'],
     queryFn: async () => {
@@ -74,7 +103,17 @@ export default function Dashboard() {
         <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} />
         <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} />
         <KPICard title="Ofertas" value={bids || 0} icon={<DollarSign className="h-4 w-4" />} />
-        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales" />
+        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales">
+          {dailySparkline.some(d => d.v > 0) && (
+            <div className="mt-1.5 h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dailySparkline}>
+                  <Bar dataKey="v" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </KPICard>
         <KPICard title="Leads" value={pendingLeads.length} icon={<Users className="h-4 w-4" />} description="Pendientes de gestión" />
       </div>
 
