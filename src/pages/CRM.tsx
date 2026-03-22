@@ -13,7 +13,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { LEAD_STATUS_LABELS, LEAD_PIPELINE_COLUMNS } from '@/lib/types';
 import type { LeadStatus } from '@/lib/types';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+// ScrollArea removed — using native scroll for better mobile touch support
 
 export default function CRM() {
   const navigate = useNavigate();
