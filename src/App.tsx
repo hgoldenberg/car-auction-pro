@@ -15,6 +15,7 @@ import TelegramGroups from "./pages/TelegramGroups";
 import CRM from "./pages/CRM";
 import LeadDetail from "./pages/LeadDetail";
 import ActivityLog from "./pages/ActivityLog";
+import VehicleGallery from "./pages/VehicleGallery";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
