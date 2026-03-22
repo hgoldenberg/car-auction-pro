@@ -177,9 +177,9 @@ export default function CRM() {
           )}
         </TabsContent>
 
-        <TabsContent value="pipeline">
+        <TabsContent value="pipeline" className="overflow-visible">
           {filters}
-          <div className="overflow-x-auto -mx-4 px-4 pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="overflow-x-auto -mx-4 px-4 pb-4 overscroll-x-contain touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="flex gap-3 snap-x snap-mandatory" style={{ minWidth: LEAD_PIPELINE_COLUMNS.length * 200 }}>
               {LEAD_PIPELINE_COLUMNS.map((col) => {
                 const colLeads = filtered?.filter((l) => l.status === col.status) || [];
