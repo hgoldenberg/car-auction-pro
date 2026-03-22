@@ -40,25 +40,27 @@ function AppRoutes() {
   const { user, loading } = useAuth();
 
   return (
-    <Routes>
-      <Route path="/login" element={
-        loading ? null : user ? <Navigate to="/" replace /> : <Login />
-      } />
-      <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/vehiculos" element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
-      <Route path="/vehiculos/nuevo" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
-      <Route path="/vehiculos/:id" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
-      <Route path="/subastas" element={<ProtectedRoute><Auctions /></ProtectedRoute>} />
-      <Route path="/subastas/nueva" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
-      <Route path="/subastas/:id" element={<ProtectedRoute><AuctionDetail /></ProtectedRoute>} />
-      <Route path="/subastas/:id/editar" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
-      <Route path="/grupos" element={<ProtectedRoute><TelegramGroups /></ProtectedRoute>} />
-      <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
-      <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
-      <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
-      <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/login" element={
+          loading ? null : user ? <Navigate to="/" replace /> : <Login />
+        } />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/vehiculos" element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
+        <Route path="/vehiculos/nuevo" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
+        <Route path="/vehiculos/:id" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
+        <Route path="/subastas" element={<ProtectedRoute><Auctions /></ProtectedRoute>} />
+        <Route path="/subastas/nueva" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
+        <Route path="/subastas/:id" element={<ProtectedRoute><AuctionDetail /></ProtectedRoute>} />
+        <Route path="/subastas/:id/editar" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
+        <Route path="/grupos" element={<ProtectedRoute><TelegramGroups /></ProtectedRoute>} />
+        <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
+        <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
+        <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+        <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
