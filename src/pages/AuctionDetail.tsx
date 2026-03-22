@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle } from 'lucide-react';
+import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus, MessageSquare, BarChart3, AlertTriangle, Eye } from 'lucide-react';
 import { TelegramPublishDialog } from '@/components/TelegramPublishDialog';
 import { ACTIVITY_ACTIONS } from '@/lib/types';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
