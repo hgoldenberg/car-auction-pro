@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { KPICard } from '@/components/KPICard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
-import { Gavel, DollarSign, Users, Clock, Activity } from 'lucide-react';
+import { Gavel, DollarSign, Users, Clock, Activity, Eye } from 'lucide-react';
 import type { AuctionStatus } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
 
