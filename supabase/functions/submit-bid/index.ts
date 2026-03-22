@@ -250,7 +250,7 @@ async function notifyGroups(
           parse_mode: 'Markdown',
           reply_markup: {
             inline_keyboard: [[
-              { text: '💰 Reofertar', url: miniAppUrl }
+              { text: '💰 Reofertar', web_app: { url: miniAppUrl } }
             ]]
           }
         }),
