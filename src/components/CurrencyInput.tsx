@@ -11,12 +11,7 @@ interface CurrencyInputProps {
 }
 
 export function CurrencyInput({ value, onChange, placeholder = 'Ingresá un monto', className, required }: CurrencyInputProps) {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Block dots, commas, and other non-numeric characters except navigation keys
-    if (['.', ',', 'e', 'E', '+'].includes(e.key)) {
-      e.preventDefault();
-    }
-  };
+  const displayValue = value === '' || value === 0 ? '' : `$ ${value.toLocaleString('es-AR')}`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9]/g, '');
@@ -29,16 +24,13 @@ export function CurrencyInput({ value, onChange, placeholder = 'Ingresá un mont
 
   return (
     <Input
-      type="number"
+      type="text"
       inputMode="numeric"
       placeholder={placeholder}
-      value={value}
+      value={displayValue}
       onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      className={cn(className)}
+      className={cn('tabular-nums', className)}
       required={required}
-      min={0}
-      step={1}
     />
   );
 }

@@ -107,10 +107,8 @@ export default function BidMiniApp() {
     if (result && !result.success) setResult(null);
   };
 
-  // Format display value with thousand separators
-  const displayAmount = bidInput
-    ? `$ ${parseInt(bidInput, 10).toLocaleString('es-AR')}`
-    : '';
+  // Format display value for live feedback only (input stays as raw digits)
+  const displayAmount = bidInput;
 
   if (isLoading) {
     return (
