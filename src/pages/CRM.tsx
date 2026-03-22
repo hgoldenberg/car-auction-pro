@@ -179,13 +179,13 @@ export default function CRM() {
 
         <TabsContent value="pipeline">
           {filters}
-          <ScrollArea className="w-full">
-            <div className="flex gap-3 pb-4" style={{ minWidth: LEAD_PIPELINE_COLUMNS.length * 200 }}>
+          <div className="overflow-x-auto -mx-4 px-4 pb-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-3 snap-x snap-mandatory" style={{ minWidth: LEAD_PIPELINE_COLUMNS.length * 200 }}>
               {LEAD_PIPELINE_COLUMNS.map((col) => {
                 const colLeads = filtered?.filter((l) => l.status === col.status) || [];
                 return (
-                  <div key={col.status} className="flex-1 min-w-[180px]">
-                    <div className="flex items-center gap-2 mb-2 px-1">
+                  <div key={col.status} className="flex-1 min-w-[160px] snap-start">
+                    <div className="flex items-center gap-2 mb-2 px-1 sticky top-0">
                       <StatusBadge status={col.status as LeadStatus} />
                       <span className="text-xs text-muted-foreground tabular-nums">({colLeads.length})</span>
                     </div>
@@ -221,8 +221,7 @@ export default function CRM() {
                 );
               })}
             </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </div>
         </TabsContent>
       </Tabs>
     </AppLayout>
