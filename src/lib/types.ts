@@ -72,6 +72,7 @@ export const ACTIVITY_ACTIONS: Record<string, string> = {
   bid_received: 'Oferta recibida',
   bid_rejected: 'Oferta rechazada',
   leading_bid_updated: 'Oferta líder actualizada',
+  bot_start_received: 'Chat iniciado',
   lead_updated: 'Lead actualizado',
   note_added: 'Nota agregada',
 };
