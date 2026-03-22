@@ -141,6 +141,36 @@ Deno.serve(async (req) => {
       }
 
       try {
+        // Check for existing publication to handle re-publish
+        const { data: existingPub } = await supabase
+          .from('auction_group_publications')
+          .select('id, external_message_id')
+          .eq('auction_id', auction_id)
+          .eq('group_id', group.id)
+          .eq('publication_type', 'real')
+          .eq('status', 'posted')
+          .single();
+
+        // Try to delete old Telegram message if re-publishing
+        if (existingPub?.external_message_id) {
+          try {
+            await fetch(`${GATEWAY_URL}/deleteMessage`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+                'X-Connection-Api-Key': TELEGRAM_API_KEY,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                chat_id: group.chat_id,
+                message_id: Number(existingPub.external_message_id),
+              }),
+            });
+          } catch (_) {
+            // Old message may already be deleted, continue anyway
+          }
+        }
+
         let tgResponse;
         let tgData;
 
@@ -183,15 +213,16 @@ Deno.serve(async (req) => {
           const errMsg = tgData.description || `HTTP ${tgResponse.status}`;
           results.push({ group_id: group.id, group_name: group.name, success: false, error: errMsg });
 
-          // Save failed publication
-          await supabase.from('auction_group_publications').insert({
-            auction_id,
-            group_id: group.id,
-            status: 'failed',
-            publication_type: 'real',
-            error_message: errMsg,
-            published_at: new Date().toISOString(),
-          });
+          if (!existingPub) {
+            await supabase.from('auction_group_publications').insert({
+              auction_id,
+              group_id: group.id,
+              status: 'failed',
+              publication_type: 'real',
+              error_message: errMsg,
+              published_at: new Date().toISOString(),
+            });
+          }
 
           await supabase.from('activity_log').insert({
             entity_type: 'publication',
@@ -203,22 +234,35 @@ Deno.serve(async (req) => {
           const messageId = tgData.result?.message_id;
           results.push({ group_id: group.id, group_name: group.name, success: true, message_id: messageId });
 
-          // Save successful publication
-          await supabase.from('auction_group_publications').insert({
-            auction_id,
-            group_id: group.id,
-            status: 'posted',
-            publication_type: 'real',
-            external_message_id: String(messageId),
-            message_id: `real-${messageId}`,
-            published_at: new Date().toISOString(),
-          });
+          if (existingPub) {
+            // Update existing publication record
+            await supabase.from('auction_group_publications')
+              .update({
+                external_message_id: String(messageId),
+                message_id: `real-${messageId}`,
+                published_at: new Date().toISOString(),
+                error_message: null,
+              })
+              .eq('id', existingPub.id);
+          } else {
+            await supabase.from('auction_group_publications').insert({
+              auction_id,
+              group_id: group.id,
+              status: 'posted',
+              publication_type: 'real',
+              external_message_id: String(messageId),
+              message_id: `real-${messageId}`,
+              published_at: new Date().toISOString(),
+            });
+          }
 
+          const actionLabel = existingPub ? 'republication_created' : 'publication_created';
+          const descLabel = existingPub ? 'republicada' : 'publicada';
           await supabase.from('activity_log').insert({
             entity_type: 'publication',
             entity_id: auction_id,
-            action: 'publication_created',
-            description: `Subasta "${auction.title}" publicada en ${group.name} (Telegram real)`,
+            action: actionLabel,
+            description: `Subasta "${auction.title}" ${descLabel} en ${group.name} (Telegram real)`,
           });
         }
       } catch (err) {
