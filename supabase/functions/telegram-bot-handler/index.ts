@@ -361,18 +361,29 @@ async function notifyGroups(
       closingText,
     ].filter(Boolean).join('\n');
 
+    const siteUrl = 'https://car-auction-pro.lovable.app';
+    const bidUrl = `${siteUrl}/ofertar/${auctionId}`;
+    const reply_markup = {
+      inline_keyboard: [
+        [{ text: '💰 Reofertar', url: bidUrl }],
+      ],
+    };
+
     for (const pub of publications) {
       const group = pub.telegram_groups;
       if (!group?.chat_id || !group.is_active || !group.is_real_group) continue;
 
-      await sendTelegramToGroup(Number(group.chat_id), text, lovableKey, telegramKey);
+      await sendTelegramToGroup(Number(group.chat_id), text, reply_markup, lovableKey, telegramKey);
     }
   } catch (e) {
     console.error('Error notifying groups:', e);
   }
 }
 
-async function sendTelegramToGroup(chatId: number, text: string, lovableKey: string, telegramKey: string) {
+async function sendTelegramToGroup(chatId: number, text: string, replyMarkup: any, lovableKey: string, telegramKey: string) {
+  const body: Record<string, unknown> = { chat_id: chatId, text, parse_mode: 'Markdown' };
+  if (replyMarkup) body.reply_markup = replyMarkup;
+
   const response = await fetch(`${GATEWAY_URL}/sendMessage`, {
     method: 'POST',
     headers: {
@@ -380,7 +391,7 @@ async function sendTelegramToGroup(chatId: number, text: string, lovableKey: str
       'X-Connection-Api-Key': telegramKey,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+    body: JSON.stringify(body),
   });
   return response.json();
 }
