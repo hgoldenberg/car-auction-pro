@@ -109,7 +109,19 @@ export default function VehicleForm() {
         navigate(`/vehiculos/${data.id}`);
       }
     },
-    onError: () => toast.error('Error al guardar'),
+    onError: (error: any) => {
+      const msg = error?.message || '';
+      if (msg.includes('violates not-null') || msg.includes('null value')) {
+        toast.error('Completá los campos obligatorios.');
+      } else if (msg.includes('duplicate') || msg.includes('unique')) {
+        toast.error('Ya existe un vehículo con estos datos.');
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        toast.error('Error de conexión. Verificá tu internet y probá nuevamente.');
+      } else {
+        toast.error('No pudimos guardar el vehículo. Probá nuevamente.');
+      }
+      console.error('Vehicle save error:', error);
+    },
   });
 
   const handleFileSelect = (files: FileList | null) => {
