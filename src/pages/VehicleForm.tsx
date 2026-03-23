@@ -176,7 +176,7 @@ export default function VehicleForm() {
         </div>
       )}
 
-      <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
+      <form onSubmit={(e) => { e.preventDefault(); if (validate()) mutation.mutate(); }}
         className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
 
         {/* Image section - EDIT mode */}
