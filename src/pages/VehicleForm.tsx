@@ -33,6 +33,7 @@ export default function VehicleForm() {
     km: '' as number | '', color: '', transmission: '', fuel_type: '', doors: 4 as number | '',
     description: '', status: 'draft' as VehicleStatus,
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { data: vehicle } = useQuery({
     queryKey: ['vehicle', id],
@@ -108,7 +109,19 @@ export default function VehicleForm() {
         navigate(`/vehiculos/${data.id}`);
       }
     },
-    onError: () => toast.error('Error al guardar'),
+    onError: (error: any) => {
+      const msg = error?.message || '';
+      if (msg.includes('violates not-null') || msg.includes('null value')) {
+        toast.error('Completá los campos obligatorios.');
+      } else if (msg.includes('duplicate') || msg.includes('unique')) {
+        toast.error('Ya existe un vehículo con estos datos.');
+      } else if (msg.includes('network') || msg.includes('fetch')) {
+        toast.error('Error de conexión. Verificá tu internet y probá nuevamente.');
+      } else {
+        toast.error('No pudimos guardar el vehículo. Probá nuevamente.');
+      }
+      console.error('Vehicle save error:', error);
+    },
   });
 
   const handleFileSelect = (files: FileList | null) => {
@@ -128,6 +141,22 @@ export default function VehicleForm() {
 
   const handleChange = (field: string, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+    }
+  };
+
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!form.make.trim()) errors.make = 'La marca es obligatoria';
+    if (!form.model.trim()) errors.model = 'El modelo es obligatorio';
+    if (!form.year || form.year < 1900 || form.year > new Date().getFullYear() + 2) errors.year = 'Ingresá un año válido';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast.error('Completá los campos obligatorios.');
+      return false;
+    }
+    return true;
   };
 
   const noMainImage = isEdit && !mainImage && !isUploading;
@@ -147,7 +176,7 @@ export default function VehicleForm() {
         </div>
       )}
 
-      <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(); }}
+      <form onSubmit={(e) => { e.preventDefault(); if (validate()) mutation.mutate(); }}
         className="max-w-2xl space-y-5 rounded-lg border bg-card p-4 shadow-card sm:p-6 sm:space-y-6">
 
         {/* Image section - EDIT mode */}
@@ -265,16 +294,19 @@ export default function VehicleForm() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Marca</Label>
-            <Input value={form.make} onChange={e => handleChange('make', e.target.value)} required />
+            <Label className={fieldErrors.make ? 'text-destructive' : ''}>Marca *</Label>
+            <Input value={form.make} onChange={e => handleChange('make', e.target.value)} className={fieldErrors.make ? 'border-destructive' : ''} />
+            {fieldErrors.make && <p className="text-xs text-destructive">{fieldErrors.make}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Modelo</Label>
-            <Input value={form.model} onChange={e => handleChange('model', e.target.value)} required />
+            <Label className={fieldErrors.model ? 'text-destructive' : ''}>Modelo *</Label>
+            <Input value={form.model} onChange={e => handleChange('model', e.target.value)} className={fieldErrors.model ? 'border-destructive' : ''} />
+            {fieldErrors.model && <p className="text-xs text-destructive">{fieldErrors.model}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Año</Label>
-            <Input type="number" value={form.year} onChange={e => handleChange('year', +e.target.value)} required />
+            <Label className={fieldErrors.year ? 'text-destructive' : ''}>Año *</Label>
+            <Input type="number" value={form.year} onChange={e => handleChange('year', +e.target.value)} className={fieldErrors.year ? 'border-destructive' : ''} />
+            {fieldErrors.year && <p className="text-xs text-destructive">{fieldErrors.year}</p>}
           </div>
           <div className="space-y-2">
             <Label>Versión</Label>
