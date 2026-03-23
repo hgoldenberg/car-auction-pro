@@ -96,13 +96,17 @@ export default function AuctionForm() {
             <Select value={form.vehicle_id} onValueChange={v => handleChange('vehicle_id', v)}>
               <SelectTrigger><SelectValue placeholder="Seleccionar vehículo" /></SelectTrigger>
               <SelectContent>
-                {vehicles?.map(v => (
+                {vehicles
+                  ?.filter(v => ['draft', 'ready', 'published'].includes(v.status) || v.id === form.vehicle_id)
+                  .map(v => (
                   <SelectItem key={v.id} value={v.id}>
-                    {v.make} {v.model} {v.year} {v.trim}
+                    {v.make} {v.model} {v.year} {v.trim && ` ${v.trim}`}
+                    {v.status === 'draft' ? ' (Borrador)' : v.status === 'sold' ? ' (Vendido)' : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">Solo vehículos en estado Borrador, Listo o Publicado.</p>
           </div>
           <div className="space-y-2 sm:col-span-2">
             <Label>Título</Label>
