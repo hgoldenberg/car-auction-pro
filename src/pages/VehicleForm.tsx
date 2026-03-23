@@ -141,6 +141,22 @@ export default function VehicleForm() {
 
   const handleChange = (field: string, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => { const n = { ...prev }; delete n[field]; return n; });
+    }
+  };
+
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!form.make.trim()) errors.make = 'La marca es obligatoria';
+    if (!form.model.trim()) errors.model = 'El modelo es obligatorio';
+    if (!form.year || form.year < 1900 || form.year > new Date().getFullYear() + 2) errors.year = 'Ingresá un año válido';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast.error('Completá los campos obligatorios.');
+      return false;
+    }
+    return true;
   };
 
   const noMainImage = isEdit && !mainImage && !isUploading;
