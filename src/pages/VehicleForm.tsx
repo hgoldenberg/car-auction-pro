@@ -33,6 +33,7 @@ export default function VehicleForm() {
     km: '' as number | '', color: '', transmission: '', fuel_type: '', doors: 4 as number | '',
     description: '', status: 'draft' as VehicleStatus,
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { data: vehicle } = useQuery({
     queryKey: ['vehicle', id],
