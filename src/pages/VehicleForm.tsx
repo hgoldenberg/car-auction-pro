@@ -294,16 +294,19 @@ export default function VehicleForm() {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Marca</Label>
-            <Input value={form.make} onChange={e => handleChange('make', e.target.value)} required />
+            <Label className={fieldErrors.make ? 'text-destructive' : ''}>Marca *</Label>
+            <Input value={form.make} onChange={e => handleChange('make', e.target.value)} className={fieldErrors.make ? 'border-destructive' : ''} />
+            {fieldErrors.make && <p className="text-xs text-destructive">{fieldErrors.make}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Modelo</Label>
-            <Input value={form.model} onChange={e => handleChange('model', e.target.value)} required />
+            <Label className={fieldErrors.model ? 'text-destructive' : ''}>Modelo *</Label>
+            <Input value={form.model} onChange={e => handleChange('model', e.target.value)} className={fieldErrors.model ? 'border-destructive' : ''} />
+            {fieldErrors.model && <p className="text-xs text-destructive">{fieldErrors.model}</p>}
           </div>
           <div className="space-y-2">
-            <Label>Año</Label>
-            <Input type="number" value={form.year} onChange={e => handleChange('year', +e.target.value)} required />
+            <Label className={fieldErrors.year ? 'text-destructive' : ''}>Año *</Label>
+            <Input type="number" value={form.year} onChange={e => handleChange('year', +e.target.value)} className={fieldErrors.year ? 'border-destructive' : ''} />
+            {fieldErrors.year && <p className="text-xs text-destructive">{fieldErrors.year}</p>}
           </div>
           <div className="space-y-2">
             <Label>Versión</Label>
