@@ -237,27 +237,39 @@ async function notifyGroups(
         continue;
       }
 
-      const resp = await fetch(`${GATEWAY_URL}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'X-Connection-Api-Key': TELEGRAM_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: Number(group.chat_id),
-          text,
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [[
-              { text: '💰 Reofertar', url: miniAppUrl }
-            ]]
-          }
-        }),
+      // Retry with backoff for transient gateway errors (502/503/504)
+      let resp: Response | null = null;
+      let respBody = '';
+      const payload = JSON.stringify({
+        chat_id: group.chat_id,
+        text,
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '💰 Reofertar', url: miniAppUrl }
+          ]]
+        }
       });
 
-      const respBody = await resp.text();
-      console.log('notifyGroups: Telegram response', { status: resp.status, group: group.name, chat_id: group.chat_id, body: respBody });
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        resp = await fetch(`${GATEWAY_URL}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'X-Connection-Api-Key': TELEGRAM_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: payload,
+        });
+        respBody = await resp.text();
+        console.log('notifyGroups: Telegram response', { attempt, status: resp.status, group: group.name, chat_id: group.chat_id, body: respBody });
+
+        if (resp.ok) break;
+        if (![502, 503, 504].includes(resp.status)) break;
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+
+      if (!resp) continue;
 
       if (!resp.ok) {
         await supabase.from('activity_log').insert({
