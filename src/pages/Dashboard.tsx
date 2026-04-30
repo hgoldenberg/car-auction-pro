@@ -5,85 +5,74 @@ import { PageHeader } from '@/components/PageHeader';
 import { KPICard } from '@/components/KPICard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
-import { Gavel, DollarSign, Users, Clock, Activity, Eye } from 'lucide-react';
+import { Gavel, DollarSign, Users, Clock, Activity, Car } from 'lucide-react';
 import type { AuctionStatus } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
-import { BarChart, Bar, ResponsiveContainer } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const enabled = !!user && !authLoading;
 
-  const { data: auctions } = useQuery({
-    queryKey: ['auctions'],
+  const { data: auctions, error: auctionsError } = useQuery({
+    queryKey: ['dashboard-auctions'],
+    enabled,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('auctions')
         .select('*, vehicles(make, model, year, trim)')
         .order('created_at', { ascending: false });
+      if (error) throw error;
       return data || [];
     },
   });
 
-  const { data: bids } = useQuery({
-    queryKey: ['bids-count'],
+  const { data: bidsCount } = useQuery({
+    queryKey: ['dashboard-bids-count'],
+    enabled,
     queryFn: async () => {
-      const { count } = await supabase.from('bids').select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase
+        .from('bids')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw error;
       return count || 0;
     },
   });
 
   const { data: leads } = useQuery({
-    queryKey: ['leads-summary'],
+    queryKey: ['dashboard-leads'],
+    enabled,
     queryFn: async () => {
-      const { data } = await supabase.from('leads').select('status');
+      const { data, error } = await supabase.from('leads').select('status');
+      if (error) throw error;
       return data || [];
     },
   });
 
-  const { data: galleryViews } = useQuery({
-    queryKey: ['gallery-views-total'],
+  const { data: publishedVehiclesCount } = useQuery({
+    queryKey: ['dashboard-vehicles-published'],
+    enabled,
     queryFn: async () => {
-      const { count } = await supabase.from('gallery_views').select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase
+        .from('vehicles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'published');
+      if (error) throw error;
       return count || 0;
     },
   });
 
-  const { data: galleryViewsDaily } = useQuery({
-    queryKey: ['gallery-views-daily'],
+  const { data: activity, error: activityError } = useQuery({
+    queryKey: ['dashboard-activity-recent'],
+    enabled,
     queryFn: async () => {
-      const since = subDays(new Date(), 6).toISOString();
-      const { data } = await supabase
-        .from('gallery_views')
-        .select('viewed_at')
-        .gte('viewed_at', since);
-      return data || [];
-    },
-  });
-
-  const dailySparkline = useMemo(() => {
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const d = subDays(new Date(), 6 - i);
-      return format(d, 'MM-dd');
-    });
-    const counts: Record<string, number> = {};
-    days.forEach(d => (counts[d] = 0));
-    galleryViewsDaily?.forEach((v) => {
-      const key = format(new Date(v.viewed_at), 'MM-dd');
-      if (counts[key] !== undefined) counts[key]++;
-    });
-    return days.map(d => ({ date: d, v: counts[d] }));
-  }, [galleryViewsDaily]);
-
-  const { data: activity } = useQuery({
-    queryKey: ['activity-recent'],
-    queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('activity_log')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
+      if (error) throw error;
       return data || [];
     },
   });
@@ -95,25 +84,23 @@ export default function Dashboard() {
     .filter(a => a.end_date)
     .sort((a, b) => new Date(a.end_date!).getTime() - new Date(b.end_date!).getTime());
 
+  const dataError = auctionsError || activityError;
+
   return (
     <AppLayout>
       <PageHeader title="Dashboard" description="Panel de control de subastas" />
 
+      {dataError && (
+        <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+          No se pudieron cargar algunos datos. Verificá tus permisos de administrador o volvé a iniciar sesión.
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3 mb-7 sm:gap-4 lg:grid-cols-5 lg:mb-8">
-        <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} />
-        <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} />
-        <KPICard title="Ofertas" value={bids || 0} icon={<DollarSign className="h-4 w-4" />} />
-        <KPICard title="Galería" value={galleryViews ?? 0} icon={<Eye className="h-4 w-4" />} description="vistas totales">
-          {dailySparkline.some(d => d.v > 0) && (
-            <div className="mt-1.5 h-8">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailySparkline}>
-                  <Bar dataKey="v" fill="hsl(var(--primary))" radius={[2, 2, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </KPICard>
+        <KPICard title="Activas" value={activeAuctions.length} icon={<Gavel className="h-4 w-4" />} description="Subastas en curso" />
+        <KPICard title="Cerradas" value={closedAuctions.length} icon={<Clock className="h-4 w-4" />} description="Cerradas o adjudicadas" />
+        <KPICard title="Vehículos" value={publishedVehiclesCount ?? 0} icon={<Car className="h-4 w-4" />} description="Publicados" />
+        <KPICard title="Ofertas" value={bidsCount ?? 0} icon={<DollarSign className="h-4 w-4" />} description="Total histórico" />
         <KPICard title="Leads" value={pendingLeads.length} icon={<Users className="h-4 w-4" />} description="Pendientes de gestión" />
       </div>
 
@@ -167,6 +154,9 @@ export default function Dashboard() {
             </h2>
           </div>
           <div className="divide-y">
+            {(!activity || activity.length === 0) && (
+              <p className="p-5 text-sm text-muted-foreground">Sin actividad reciente</p>
+            )}
             {activity?.map((entry) => (
               <div key={entry.id} className="px-4 py-3.5 flex items-start gap-3 sm:px-5">
                 <div className="h-7 w-7 rounded-full bg-accent flex items-center justify-center mt-0.5 shrink-0">
