@@ -159,8 +159,8 @@ export default function CRM() {
                         onClick={() => navigate(`/crm/${lead.id}`)}
                       >
                         <TableCell className="font-medium">{lead.full_name}</TableCell>
-                        <TableCell className="tabular-nums text-muted-foreground">{lead.phone || '-'}</TableCell>
-                        <TableCell className="text-muted-foreground">{lead.telegram_username || '-'}</TableCell>
+                        <TableCell className="tabular-nums text-muted-foreground">{lead.phone || 'No disponible'}</TableCell>
+                        <TableCell className="text-muted-foreground">{lead.telegram_username || 'No disponible'}</TableCell>
                         <TableCell className="text-muted-foreground">{group?.name || '-'}</TableCell>
                         <TableCell>{interest}</TableCell>
                         <TableCell className="text-right tabular-nums font-medium">
