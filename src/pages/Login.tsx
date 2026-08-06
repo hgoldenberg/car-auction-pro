@@ -36,7 +36,9 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">Subasta Privada Auto</h1>
           <p className="text-sm text-muted-foreground mt-1.5">Telegram Edition · Panel Admin</p>
+          <DemoBadge className="mt-4" />
         </div>
+
 
         <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border bg-card p-6 shadow-elevated sm:p-7">
           <div className="space-y-2">
