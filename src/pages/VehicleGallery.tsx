@@ -227,6 +227,10 @@ export default function VehicleGallery() {
           {currentIndex + 1} / {images.length}
         </span>
       </header>
+      <div className="px-4 py-2 border-b border-white/10 shrink-0">
+        <DemoBadge variant="dark" />
+      </div>
+
 
       {/* Image viewer */}
       <div
