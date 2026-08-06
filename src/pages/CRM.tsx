@@ -119,8 +119,8 @@ export default function CRM() {
                       <StatusBadge status={lead.status as LeadStatus} />
                     </div>
                     <div className="space-y-0.5 text-xs text-muted-foreground mt-2">
-                      {lead.phone && <p>{lead.phone}</p>}
-                      {lead.telegram_username && <p>{lead.telegram_username}</p>}
+                      <p>{lead.phone || 'No disponible'}</p>
+                      <p>{lead.telegram_username || 'No disponible'}</p>
                       {latestBid && (
                         <p className="font-medium text-foreground">
                           Última oferta: {formatCurrency(latestBid.amount)}
