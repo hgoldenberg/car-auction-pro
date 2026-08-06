@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
 import { ChevronLeft, ChevronRight, Camera, X, ZoomIn } from 'lucide-react';
+import { DemoBadge } from '@/components/DemoBadge';
 
 export default function VehicleGallery() {
   const { auctionId } = useParams();
