@@ -1,15 +1,12 @@
 import {
-  LayoutDashboard, Car, Gavel, Users, Activity, LogOut, Send,
+  LayoutDashboard, Car, Gavel, Users, Activity, Send,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   SidebarFooter, useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -23,13 +20,7 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
 
   return (
     <Sidebar collapsible="icon">
