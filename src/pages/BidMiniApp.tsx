@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
 import { Shield, CheckCircle2, AlertCircle, Loader2, Zap } from 'lucide-react';
+import { DemoBadge } from '@/components/DemoBadge';
 
 const MIN_BID_INCREMENT = 50000;
 
@@ -137,8 +138,12 @@ export default function BidMiniApp() {
 
   return (
     <div className="min-h-screen bg-[#1a1a2e] text-white flex flex-col">
+      <div className="px-4 pt-3">
+        <DemoBadge variant="dark" />
+      </div>
       {/* Vehicle hero */}
       <div className="relative">
+
         {photoUrl ? (
           <img src={photoUrl} alt={vehicleTitle} className="w-full aspect-[16/10] object-cover" />
         ) : (

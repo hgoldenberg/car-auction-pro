@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
 import { ChevronLeft, ChevronRight, Camera, X, ZoomIn } from 'lucide-react';
+import { DemoBadge } from '@/components/DemoBadge';
 
 export default function VehicleGallery() {
   const { auctionId } = useParams();
@@ -227,6 +228,10 @@ export default function VehicleGallery() {
           {currentIndex + 1} / {images.length}
         </span>
       </header>
+      <div className="px-4 py-2 border-b border-white/10 shrink-0">
+        <DemoBadge variant="dark" />
+      </div>
+
 
       {/* Image viewer */}
       <div
