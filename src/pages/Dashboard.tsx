@@ -8,16 +8,12 @@ import { formatCurrency, timeAgo, timeRemaining } from '@/lib/formatters';
 import { Gavel, DollarSign, Users, Clock, Activity, Car } from 'lucide-react';
 import type { AuctionStatus } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const enabled = !!user && !authLoading;
 
   const { data: auctions, error: auctionsError } = useQuery({
     queryKey: ['dashboard-auctions'],
-    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('auctions')
@@ -30,7 +26,6 @@ export default function Dashboard() {
 
   const { data: bidsCount } = useQuery({
     queryKey: ['dashboard-bids-count'],
-    enabled,
     queryFn: async () => {
       const { count, error } = await supabase
         .from('bids')
@@ -42,7 +37,6 @@ export default function Dashboard() {
 
   const { data: leads } = useQuery({
     queryKey: ['dashboard-leads'],
-    enabled,
     queryFn: async () => {
       const { data, error } = await supabase.from('leads').select('status');
       if (error) throw error;
@@ -52,7 +46,6 @@ export default function Dashboard() {
 
   const { data: publishedVehiclesCount } = useQuery({
     queryKey: ['dashboard-vehicles-published'],
-    enabled,
     queryFn: async () => {
       const { count, error } = await supabase
         .from('vehicles')
@@ -65,7 +58,6 @@ export default function Dashboard() {
 
   const { data: activity, error: activityError } = useQuery({
     queryKey: ['dashboard-activity-recent'],
-    enabled,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('activity_log')
@@ -92,7 +84,7 @@ export default function Dashboard() {
 
       {dataError && (
         <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-          No se pudieron cargar algunos datos. Verificá tus permisos de administrador o volvé a iniciar sesión.
+          No se pudieron cargar algunos datos. Actualizá la página para reintentar.
         </div>
       )}
 
