@@ -4,8 +4,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import Login from "./pages/Login";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Lazy-loaded routes for code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -30,34 +29,24 @@ const PageLoader = () => (
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Cargando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
 function AppRoutes() {
-  const { user, loading } = useAuth();
-
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/login" element={
-          loading ? null : user ? <Navigate to="/" replace /> : <Login />
-        } />
-        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/vehiculos" element={<ProtectedRoute><Vehicles /></ProtectedRoute>} />
-        <Route path="/vehiculos/nuevo" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
-        <Route path="/vehiculos/:id" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
-        <Route path="/subastas" element={<ProtectedRoute><Auctions /></ProtectedRoute>} />
-        <Route path="/subastas/nueva" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
-        <Route path="/subastas/:id" element={<ProtectedRoute><AuctionDetail /></ProtectedRoute>} />
-        <Route path="/subastas/:id/editar" element={<ProtectedRoute><AuctionForm /></ProtectedRoute>} />
-        <Route path="/grupos" element={<ProtectedRoute><TelegramGroups /></ProtectedRoute>} />
-        <Route path="/crm" element={<ProtectedRoute><CRM /></ProtectedRoute>} />
-        <Route path="/crm/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
-        <Route path="/actividad" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+        {/* Demo pública: no hay pantalla de login */}
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/vehiculos" element={<Vehicles />} />
+        <Route path="/vehiculos/nuevo" element={<VehicleForm />} />
+        <Route path="/vehiculos/:id" element={<VehicleForm />} />
+        <Route path="/subastas" element={<Auctions />} />
+        <Route path="/subastas/nueva" element={<AuctionForm />} />
+        <Route path="/subastas/:id" element={<AuctionDetail />} />
+        <Route path="/subastas/:id/editar" element={<AuctionForm />} />
+        <Route path="/grupos" element={<TelegramGroups />} />
+        <Route path="/crm" element={<CRM />} />
+        <Route path="/crm/:id" element={<LeadDetail />} />
+        <Route path="/actividad" element={<ActivityLog />} />
         <Route path="/galeria/:auctionId" element={<VehicleGallery />} />
         <Route path="/ofertar/:auctionId" element={<BidMiniApp />} />
         <Route path="*" element={<NotFound />} />

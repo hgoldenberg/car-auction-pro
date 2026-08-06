@@ -14,6 +14,10 @@ import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { EditTelegramGroupDialog } from '@/components/EditTelegramGroupDialog';
 import { Send, Hash, MessageSquare, Settings, Plus } from 'lucide-react';
 
+/** Enmascara el chat ID para la demo pública */
+const maskChatId = (chatId?: string | null) =>
+  chatId ? `••••${chatId.slice(-4)}` : 'No disponible';
+
 export default function TelegramGroups() {
   const isMobile = useIsMobile();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -83,7 +87,7 @@ export default function TelegramGroups() {
                     </div>
                   </div>
                   {g.description && <p className="text-xs text-muted-foreground mb-2">{g.description}</p>}
-                  <MobileCardRow label="Chat ID">{g.chat_id || '—'}</MobileCardRow>
+                  <MobileCardRow label="Chat ID">{maskChatId(g.chat_id)}</MobileCardRow>
                   <MobileCardRow label="Miembros">{g.member_count?.toLocaleString('es-AR')}</MobileCardRow>
                 </MobileCard>
               ))}
@@ -118,7 +122,7 @@ export default function TelegramGroups() {
                           <Badge variant="secondary" className="text-xs">Demo</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">{g.chat_id || '—'}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">{maskChatId(g.chat_id)}</TableCell>
                       <TableCell className="text-muted-foreground">{g.description}</TableCell>
                       <TableCell className="text-center tabular-nums">{g.member_count?.toLocaleString('es-AR')}</TableCell>
                       <TableCell>
