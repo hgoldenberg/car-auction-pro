@@ -75,15 +75,11 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-3">
-        <Button
-          variant="ghost"
-          size={collapsed ? 'icon' : 'default'}
-          onClick={handleSignOut}
-          className="w-full justify-start text-muted-foreground hover:text-destructive rounded-lg"
-        >
-          <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2">Cerrar sesión</span>}
-        </Button>
+        {!collapsed && (
+          <p className="text-[10px] leading-snug text-muted-foreground px-1">
+            Demo pública de solo lectura · datos 100% ficticios
+          </p>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
