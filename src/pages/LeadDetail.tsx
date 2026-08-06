@@ -117,16 +117,16 @@ export default function LeadDetail() {
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4 shrink-0" /> {lead.phone || '-'}
+                <Phone className="h-4 w-4 shrink-0" /> {lead.phone || 'No disponible'}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{lead.email || '-'}</span>
+                <Mail className="h-4 w-4 shrink-0" /> <span className="truncate">{lead.email || 'No disponible'}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MessageSquare className="h-4 w-4 shrink-0" /> {lead.telegram_username || '-'}
+                <MessageSquare className="h-4 w-4 shrink-0" /> {lead.telegram_username || 'No disponible'}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 shrink-0" /> {lead.city || '-'}
+                <MapPin className="h-4 w-4 shrink-0" /> {lead.city || 'No disponible'}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Send className="h-4 w-4 shrink-0" /> {group?.name || '-'}
