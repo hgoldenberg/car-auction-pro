@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
 import { Shield, CheckCircle2, AlertCircle, Loader2, Zap } from 'lucide-react';
+import { DemoBadge } from '@/components/DemoBadge';
 
 const MIN_BID_INCREMENT = 50000;
 
