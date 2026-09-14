@@ -1,78 +1,40 @@
-## Qué voy a corregir
-
-Identifiqué dos problemas reales y una inconsistencia funcional:
-
-1. **El dashboard no coincide con lo pedido**
-   - Hoy muestra: **Activas, Cerradas, Ofertas, Galería, Leads**.
-   - Pero lo que se quería verificar era: **Subastas activas, subastas cerradas, vehículos publicados, ofertas totales, leads pendientes y actividad reciente**.
-   - O sea: el KPI de **Vehículos publicados** directamente **no existe** en el código actual; está reemplazado por **Galería**.
-
-2. **Las consultas del dashboard silencian errores y terminan mostrando 0 / vacío**
-   - En `src/pages/Dashboard.tsx` las queries hacen `return data || []` o `return count || 0` sin lanzar error si falla la consulta.
-   - Si hay un problema de permisos, la UI puede quedar en **ceros** aunque la base tenga datos.
-
-3. **Hay una alta probabilidad de que los permisos admin se hayan roto con la migración de seguridad**
-   - Las políticas RLS usan `public.is_admin(auth.uid())` para `auctions`, `vehicles`, `bids`, `leads`, `activity_log`, etc.
-   - Pero existe una migración que hace:
-     - `REVOKE EXECUTE ON FUNCTION public.is_admin(uuid) FROM PUBLIC, anon, authenticated;`
-     - `GRANT EXECUTE ... TO service_role;`
-   - Eso puede impedir que el rol autenticado evalúe la función dentro de las políticas, dejando al dashboard sin acceso aunque el usuario sí sea admin.
-
-## Plan de implementación
-
-### 1) Restaurar el acceso correcto para las políticas admin
-- Revisar y corregir la estrategia de permisos de `is_admin(...)` para que las políticas RLS puedan evaluarse correctamente para usuarios autenticados admin.
-- Aplicar el ajuste también pensando en Storage, porque las políticas del bucket `vehicle-images` también dependen de esa función.
-- Validar que las tablas del panel admin vuelvan a responder con datos reales para cuentas admin.
-
-### 2) Hacer explícito el estado “auth/admin listo” antes de consultar el dashboard
-- Crear una capa de “sesión lista / admin listo” en autenticación.
-- Evitar que el dashboard dispare queries antes de que el usuario esté correctamente resuelto.
-- Agregar `enabled` en las queries dependientes de sesión/admin para evitar estados intermedios engañosos.
-- Si el usuario no es admin, mostrar un estado claro de acceso restringido en vez de ceros.
-
-### 3) Dejar de ocultar errores de datos
-- Cambiar las queries del dashboard para que, si una consulta falla, el error se propague y se vea en pantalla o en un estado controlado.
-- Reemplazar el patrón actual de fallback silencioso por:
-  - loading real,
-  - error visible,
-  - datos válidos cuando la consulta efectivamente responde.
-- Esto evita volver a caer en un dashboard “vacío pero sin explicación”.
-
-### 4) Alinear el dashboard con los KPIs correctos
-- Reemplazar el KPI **Galería** por **Vehículos publicados**.
-- Mantener y validar estos valores:
-  - **Activas**
-  - **Cerradas**
-  - **Vehículos publicados**
-  - **Ofertas totales**
-  - **Leads pendientes**
-  - **Actividad reciente**
-- Dejar la actividad reciente como listado de las últimas entradas reales de `activity_log`.
-
-### 5) Verificación funcional completa después del fix
-Una vez aplicado, voy a comprobar que el dashboard muestre exactamente:
-
-- **Activas:** 7
-- **Cerradas:** 2
-- **Vehículos publicados:** 6
-- **Ofertas totales:** 69
-- **Leads pendientes:** 3
-- **Actividad reciente:** últimas 10 entradas de `activity_log`
-
-Además verificaré que:
-- refrescar la página no vuelva a dejar el panel en cero,
-- el usuario admin siga entrando correctamente,
-- un usuario no admin no vea datos sensibles,
-- las imágenes del bucket sigan protegidas con escritura solo admin.
-
-## Archivos que tocaría
-- `src/pages/Dashboard.tsx`
-- `src/contexts/AuthContext.tsx`
-- `src/App.tsx` o un hook nuevo de readiness/admin
-- nueva migración SQL para corregir permisos/uso de `is_admin(...)`
+# Demo comercial profesional de Criteriva
 
 ## Resultado esperado
-Después del cambio, el dashboard va a dejar de “mentir con ceros”, va a mostrar los KPIs correctos pedidos, y los permisos admin van a quedar consistentes con la seguridad nueva.
+- La app abre completa desde cualquier navegador, sin depender de servicios externos ni registros previos.
+- Dashboard, vehículos, subastas, CRM, actividad, grupos, galerías y detalles comparten el mismo dataset ficticio y coherente.
+- Todas las rutas son operables desde 320, 375, 390 y 430 px sin desbordes, cortes ni controles difíciles de tocar.
+- La versión desktop conserva su estructura e identidad actual.
 
-Si aprobás, lo implemento.
+## Implementación
+
+### 1. Fuente local de datos demo
+- Crear un único dataset local, determinístico y tipado con 12 vehículos, imágenes locales existentes, patentes y vendedores ficticios.
+- Relacionar subastas programadas, activas, cerradas/adjudicadas y canceladas con leads, ofertas, publicaciones, notas, vistas y actividad.
+- Calcular contadores, mejores ofertas, reserva alcanzada/no alcanzada/pendiente y KPIs desde esas relaciones para evitar discrepancias.
+- Usar exclusivamente los datos locales en la experiencia demo pública, eliminando estados vacíos provocados por red o permisos.
+- Mantener importes en ARS y nombres anonimizados tipo “Lead Demo 01”, sin teléfonos, correos ni identificadores personales reales.
+
+### 2. Integración en todas las rutas
+- Conectar dashboard, listados, detalles, CRM, pipeline, actividad, grupos, galería y mini app de oferta al mismo origen local.
+- Mantener navegación, filtros, tabs, galerías y simulaciones interactivas; las acciones demo actualizarán el estado local de la sesión cuando corresponda, sin llamadas externas.
+- Agregar estados claros para identificadores inexistentes en vez de pantallas de carga permanentes.
+- Mostrar en todas las experiencias la etiqueta exacta “DEMO · DATOS FICTICIOS”.
+
+### 3. Correcciones mobile-first
+- Eliminar anchos fijos problemáticos en filtros y adaptar formularios y acciones a ancho completo en pantallas pequeñas.
+- Convertir el pipeline móvil en secciones verticales legibles, manteniendo el tablero horizontal en desktop.
+- Asegurar targets táctiles mínimos de 44 px en navegación, ajustes, galería, chat y diálogos.
+- Dar margen lateral y desplazamiento interno a diálogos; reorganizar KPIs y acciones de detalle sin alterar desktop.
+- Añadir protección global contra desborde horizontal y cortes de textos largos.
+
+### 4. Privacidad y seguridad
+- Como la demo dejará de leer información comercial desde la base, retirar el acceso anónimo a `activity_log`, `bids` y `lead_notes` sin afectar la presentación pública.
+- Mantener los datos reales y secretos fuera del frontend; las imágenes demo serán archivos locales del proyecto.
+
+### 5. Verificación
+- Probar todas las rutas a 320, 375, 390 y 430 px, además de desktop.
+- Validar ausencia de overflow global, elementos superpuestos, rutas rotas y errores de consola.
+- Ejecutar pruebas disponibles y verificar el build de producción.
+- Revisar consistencia automática entre ofertas, contadores, mejores ofertas, reservas, estados, KPIs y actividad.
+- No publicar. La integración GitHub existente se conserva; el entorno sincroniza los cambios del proyecto en la rama configurada.
