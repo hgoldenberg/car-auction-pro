@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoActivity, demoAuctions, demoBids, demoLeads, demoVehicles } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { KPICard } from '@/components/KPICard';
@@ -15,57 +15,35 @@ export default function Dashboard() {
   const { data: auctions, error: auctionsError } = useQuery({
     queryKey: ['dashboard-auctions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('auctions')
-        .select('*, vehicles(make, model, year, trim)')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
+      return demoAuctions;
     },
   });
 
   const { data: bidsCount } = useQuery({
     queryKey: ['dashboard-bids-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('bids')
-        .select('*', { count: 'exact', head: true });
-      if (error) throw error;
-      return count || 0;
+      return demoBids.length;
     },
   });
 
   const { data: leads } = useQuery({
     queryKey: ['dashboard-leads'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('leads').select('status');
-      if (error) throw error;
-      return data || [];
+      return demoLeads;
     },
   });
 
   const { data: publishedVehiclesCount } = useQuery({
     queryKey: ['dashboard-vehicles-published'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('vehicles')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'published');
-      if (error) throw error;
-      return count || 0;
+      return demoVehicles.filter(v => v.status === 'published').length;
     },
   });
 
   const { data: activity, error: activityError } = useQuery({
     queryKey: ['dashboard-activity-recent'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('activity_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data || [];
+      return demoActivity.slice(0, 10);
     },
   });
 

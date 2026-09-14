@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { forwardRef, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface KPICardProps {
@@ -10,9 +10,9 @@ interface KPICardProps {
   children?: ReactNode;
 }
 
-export function KPICard({ title, value, icon, description, className, children }: KPICardProps) {
+export const KPICard = forwardRef<HTMLDivElement, KPICardProps>(function KPICard({ title, value, icon, description, className, children }, ref) {
   return (
-    <div className={cn(
+    <div ref={ref} className={cn(
       'rounded-xl border bg-card p-3 shadow-card transition-shadow hover:shadow-elevated sm:p-4 min-w-0 overflow-hidden',
       className
     )}>
@@ -25,4 +25,4 @@ export function KPICard({ title, value, icon, description, className, children }
       {children}
     </div>
   );
-}
+});

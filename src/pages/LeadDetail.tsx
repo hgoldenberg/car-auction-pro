@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -13,8 +12,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Phone, Mail, MapPin, MessageSquare, Send, Plus } from 'lucide-react';
 import { LEAD_STATUS_LABELS, ACTIVITY_ACTIONS, ENTITY_TYPES } from '@/lib/types';
 import type { LeadStatus, BidStatus } from '@/lib/types';
-import { changeLeadStatus, addLeadNote } from '@/lib/auction-actions';
 import { toast } from 'sonner';
+import { demoActivityFor, demoBidsForLead, demoLeadById, demoNotes } from '@/lib/demo-data';
 
 const quickStatuses: LeadStatus[] = ['interested', 'finalist', 'follow_up', 'lost', 'closed'];
 
@@ -27,54 +26,33 @@ export default function LeadDetail() {
   const { data: lead } = useQuery({
     queryKey: ['lead', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('leads')
-        .select('*, telegram_groups(name)')
-        .eq('id', id!)
-        .single();
-      return data;
+      return demoLeadById(id) || null;
     },
   });
 
   const { data: bids } = useQuery({
     queryKey: ['lead-bids', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('bids')
-        .select('*, auctions(title, status, vehicles(make, model, year))')
-        .eq('lead_id', id!)
-        .order('created_at', { ascending: false });
-      return data || [];
+      return demoBidsForLead(id);
     },
   });
 
   const { data: notes } = useQuery({
     queryKey: ['lead-notes', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('lead_notes')
-        .select('*')
-        .eq('lead_id', id!)
-        .order('created_at', { ascending: false });
-      return data || [];
+      return demoNotes.filter(n => n.lead_id === id);
     },
   });
 
   const { data: activity } = useQuery({
     queryKey: ['lead-activity', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('activity_log')
-        .select('*')
-        .eq('entity_id', id!)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      return data || [];
+      return demoActivityFor(id).slice(0, 20);
     },
   });
 
   const statusMutation = useMutation({
-    mutationFn: (newStatus: LeadStatus) => changeLeadStatus(id!, newStatus),
+    mutationFn: async (newStatus: LeadStatus) => newStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead', id] });
       queryClient.invalidateQueries({ queryKey: ['lead-activity', id] });
@@ -84,7 +62,7 @@ export default function LeadDetail() {
   });
 
   const noteMutation = useMutation({
-    mutationFn: () => addLeadNote(id!, noteContent),
+    mutationFn: async () => noteContent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead-notes', id] });
       queryClient.invalidateQueries({ queryKey: ['lead-activity', id] });
@@ -94,7 +72,7 @@ export default function LeadDetail() {
     onError: () => toast.error('Error al agregar nota'),
   });
 
-  if (!lead) return <AppLayout><div className="p-8 text-center text-muted-foreground">Cargando...</div></AppLayout>;
+  if (!lead) return <AppLayout><div className="p-8 text-center text-muted-foreground">Lead demo no encontrado.</div></AppLayout>;
 
   const group = (lead as any).telegram_groups;
   const totalBidAmount = bids?.reduce((sum, b) => sum + b.amount, 0) || 0;

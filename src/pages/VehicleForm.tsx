@@ -16,6 +16,7 @@ import { VEHICLE_STATUS_LABELS } from '@/lib/types';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { SortableImageGrid } from '@/components/SortableImageGrid';
 import { CurrencyInput } from '@/components/CurrencyInput';
+import { demoVehicles } from '@/lib/demo-data';
 
 export default function VehicleForm() {
   const { id } = useParams();
@@ -39,8 +40,7 @@ export default function VehicleForm() {
     queryKey: ['vehicle', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data } = await supabase.from('vehicles').select('*').eq('id', id).single();
-      return data;
+      return demoVehicles.find(v => v.id === id) || null;
     },
     enabled: isEdit,
   });
@@ -61,44 +61,7 @@ export default function VehicleForm() {
   }, [vehicle]);
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        ...form,
-        km: form.km === '' ? 0 : form.km,
-        doors: form.doors === '' ? 4 : form.doors,
-      };
-      if (isEdit) {
-        const { error } = await supabase.from('vehicles').update(payload).eq('id', id);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase.from('vehicles').insert(payload).select('id').single();
-        if (error) throw error;
-        // Upload pending image after vehicle creation
-        if (pendingImage && data) {
-          const ext = pendingImage.name.split('.').pop() || 'jpg';
-          const path = `${data.id}/${Date.now()}.${ext}`;
-          const { error: uploadErr } = await supabase.storage.from('vehicle-images').upload(path, pendingImage, {
-            contentType: pendingImage.type || 'image/jpeg',
-          });
-          if (uploadErr) {
-            console.error('Image upload error:', uploadErr);
-            toast.error('Vehículo creado pero falló la subida de imagen');
-          } else {
-            const { error: imgErr } = await supabase.from('vehicle_images').insert({
-              vehicle_id: data.id,
-              storage_path: path,
-              is_main: true,
-              display_order: 0,
-            });
-            if (imgErr) {
-              console.error('Image record error:', imgErr);
-              toast.error('Imagen subida pero falló el registro');
-            }
-          }
-        }
-        return data;
-      }
-    },
+    mutationFn: async () => ({ id: id || 'demo-preview' }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       if (isEdit) {
@@ -106,7 +69,7 @@ export default function VehicleForm() {
         navigate('/vehiculos');
       } else if (data) {
         toast.success(pendingImage ? 'Vehículo creado con foto principal' : 'Vehículo creado');
-        navigate(`/vehiculos/${data.id}`);
+        navigate('/vehiculos');
       }
     },
     onError: (error: any) => {

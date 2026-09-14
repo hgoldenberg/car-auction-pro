@@ -15,6 +15,7 @@ export type VehicleImage = {
 };
 
 export function getVehicleImageUrl(storagePath: string) {
+  if (storagePath.startsWith('/') || storagePath.startsWith('data:') || storagePath.startsWith('http')) return storagePath;
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
   return data.publicUrl;
 }
@@ -27,6 +28,9 @@ export function useVehicleImages(vehicleId?: string) {
     queryKey,
     enabled: !!vehicleId,
     queryFn: async () => {
+      const { demoImagesForVehicle } = await import('@/lib/demo-data');
+      const demoImages = demoImagesForVehicle(vehicleId);
+      if (demoImages.length) return demoImages as VehicleImage[];
       const { data } = await supabase
         .from('vehicle_images')
         .select('*')

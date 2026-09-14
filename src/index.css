@@ -97,6 +97,12 @@
   /* Smoother scrolling */
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-width: 320px;
+    overflow-x: hidden;
   }
 
   /* Better focus rings */

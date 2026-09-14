@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/AppLayout';
 
 import { StatusBadge } from '@/components/StatusBadge';
@@ -24,6 +23,7 @@ import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { demoActivityFor, demoAuctionById, demoBidsForAuction, demoGroups, demoPublicationsForAuction, demoViewsForAuction } from '@/lib/demo-data';
 
 export default function AuctionDetail() {
   const { id } = useParams();
@@ -48,71 +48,42 @@ export default function AuctionDetail() {
   const { data: auction } = useQuery({
     queryKey: ['auction', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('auctions')
-        .select('*, vehicles(make, model, year, trim, color, km, status, fuel_type, transmission, doors)')
-        .eq('id', id!)
-        .single();
-      return data;
+      return demoAuctionById(id) || null;
     },
   });
 
   const { data: bids } = useQuery({
     queryKey: ['auction-bids', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('bids')
-        .select('*, leads(full_name, telegram_username)')
-        .eq('auction_id', id!)
-        .order('amount', { ascending: false });
-      return data || [];
+      return demoBidsForAuction(id);
     },
   });
 
   const { data: publications } = useQuery({
     queryKey: ['auction-publications', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('auction_group_publications')
-        .select('*, telegram_groups(name)')
-        .eq('auction_id', id!);
-      return data || [];
+      return demoPublicationsForAuction(id);
     },
   });
 
   const { data: activity } = useQuery({
     queryKey: ['auction-activity', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('activity_log')
-        .select('*')
-        .eq('entity_id', id!)
-        .order('created_at', { ascending: false })
-        .limit(15);
-      return data || [];
+      return demoActivityFor(id).slice(0, 15);
     },
   });
 
   const { data: galleryViewCount } = useQuery({
     queryKey: ['gallery-views', id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from('gallery_views')
-        .select('*', { count: 'exact', head: true })
-        .eq('auction_id', id!);
-      return count || 0;
+      return demoViewsForAuction(id).length;
     },
   });
 
   const { data: galleryViewsByDay } = useQuery({
     queryKey: ['gallery-views-daily', id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('gallery_views')
-        .select('viewed_at')
-        .eq('auction_id', id!)
-        .order('viewed_at');
-      return data || [];
+      return demoViewsForAuction(id);
     },
   });
 
@@ -132,27 +103,18 @@ export default function AuctionDetail() {
   const { data: leads } = useQuery({
     queryKey: ['leads-for-bid'],
     queryFn: async () => {
-      const { data } = await supabase.from('leads').select('id, full_name').order('full_name');
-      return data || [];
+      return demoGroups.length ? (await import('@/lib/demo-data')).demoLeads : [];
     },
   });
 
   const actionMutation = useMutation({
-    mutationFn: async (action: string) => {
-      switch (action) {
-        case 'activate': return activateAuction(id!);
-        case 'pause': return pauseAuction(id!);
-        case 'close': return closeAuction(id!);
-        case 'award': return awardAuction(id!);
-        default: throw new Error('Acción desconocida');
-      }
-    },
+    mutationFn: async (action: string) => action,
     onSuccess: () => { invalidateAll(); toast.success('Acción ejecutada'); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const bidMutation = useMutation({
-    mutationFn: () => submitBid(id!, bidLeadId, Number(bidAmount)),
+    mutationFn: async () => ({ auctionId: id, bidLeadId, amount: Number(bidAmount) }),
     onSuccess: () => {
       invalidateAll();
       setShowBidForm(false);
@@ -165,7 +127,7 @@ export default function AuctionDetail() {
 
   const { images: vehicleImages, mainImage: vehicleMainImage } = useVehicleImages(auction?.vehicle_id);
 
-  if (!auction) return <AppLayout><div className="p-8 text-center text-muted-foreground">Cargando...</div></AppLayout>;
+  if (!auction) return <AppLayout><div className="p-8 text-center text-muted-foreground">Subasta demo no encontrada.</div></AppLayout>;
 
   const vehicle = (auction as any).vehicles;
   const uniqueBidders = new Set(bids?.map(b => b.lead_id)).size;
@@ -216,7 +178,7 @@ export default function AuctionDetail() {
             </div>
 
             {/* Key metrics inline */}
-            <div className="flex items-center gap-4 text-sm">
+            <div className="grid grid-cols-3 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground text-xs">Líder</span>
                 <p className="font-semibold tabular-nums text-primary">{formatCurrency(auction.current_high_bid)}</p>
@@ -261,7 +223,7 @@ export default function AuctionDetail() {
                   <span className="text-muted-foreground tabular-nums">{timeRemaining(auction.end_date)}</span>
                 </div>
               </div>
-              <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-9 w-9" onClick={() => navigate(`/subastas/${id}/editar`)}>
+              <Button variant="outline" size="icon" className="rounded-lg shrink-0 h-11 w-11" onClick={() => navigate(`/subastas/${id}/editar`)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </div>
@@ -310,34 +272,34 @@ export default function AuctionDetail() {
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-wrap gap-2 mb-5">
+      <div className="grid grid-cols-2 gap-2 mb-5 sm:flex sm:flex-wrap">
         {['draft', 'scheduled', 'paused'].includes(status) && (
-          <Button size="sm" className="rounded-lg" onClick={() => actionMutation.mutate('activate')} disabled={actionMutation.isPending}>
+          <Button size="sm" className="h-11 rounded-lg sm:h-9" onClick={() => actionMutation.mutate('activate')} disabled={actionMutation.isPending}>
             <Play className="h-4 w-4 mr-1" /> Activar
           </Button>
         )}
         {status === 'active' && (
-          <Button size="sm" variant="outline" className="rounded-lg" onClick={() => actionMutation.mutate('pause')} disabled={actionMutation.isPending}>
+          <Button size="sm" variant="outline" className="h-11 rounded-lg sm:h-9" onClick={() => actionMutation.mutate('pause')} disabled={actionMutation.isPending}>
             <Pause className="h-4 w-4 mr-1" /> Pausar
           </Button>
         )}
         {['active', 'paused'].includes(status) && (
-          <Button size="sm" variant="outline" className="rounded-lg" onClick={() => actionMutation.mutate('close')} disabled={actionMutation.isPending}>
+          <Button size="sm" variant="outline" className="h-11 rounded-lg sm:h-9" onClick={() => actionMutation.mutate('close')} disabled={actionMutation.isPending}>
             <XCircle className="h-4 w-4 mr-1" /> Cerrar
           </Button>
         )}
         {status === 'closed' && (
-          <Button size="sm" className="rounded-lg" onClick={() => actionMutation.mutate('award')} disabled={actionMutation.isPending}>
+          <Button size="sm" className="h-11 rounded-lg sm:h-9" onClick={() => actionMutation.mutate('award')} disabled={actionMutation.isPending}>
             <Award className="h-4 w-4 mr-1" /> Adjudicar
           </Button>
         )}
         {status === 'active' && (
           <>
             <TelegramPublishDialog auctionId={id!} auctionTitle={auction.title} auctionStatus={status} />
-            <Button size="sm" variant="secondary" className="rounded-lg" onClick={() => setShowBidForm(!showBidForm)}>
+            <Button size="sm" variant="secondary" className="h-11 rounded-lg sm:h-9" onClick={() => setShowBidForm(!showBidForm)}>
               <Plus className="h-4 w-4 mr-1" /> Inyectar oferta
             </Button>
-            <Button size="sm" variant="secondary" className="rounded-lg bg-telegram/10 text-telegram hover:bg-telegram/20" onClick={() => setShowChat(!showChat)}>
+            <Button size="sm" variant="secondary" className="h-11 rounded-lg bg-telegram/10 text-telegram hover:bg-telegram/20 sm:h-9" onClick={() => setShowChat(!showChat)}>
               <MessageSquare className="h-4 w-4 mr-1" /> Chat demo
             </Button>
           </>

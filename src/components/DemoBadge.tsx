@@ -22,7 +22,7 @@ export function DemoBadge({ className, variant = 'default' }: DemoBadgeProps) {
       )}
     >
       <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
-      <span>Demo funcional · datos 100% ficticios</span>
+      <span>DEMO · DATOS FICTICIOS</span>
     </div>
   );
 }

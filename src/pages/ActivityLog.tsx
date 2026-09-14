@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoActivity } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { timeAgo } from '@/lib/formatters';
@@ -25,12 +25,7 @@ export default function ActivityLog() {
   const { data: activity, isLoading } = useQuery({
     queryKey: ['activity-log'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('activity_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      return data || [];
+      return demoActivity;
     },
   });
 
@@ -48,9 +43,9 @@ export default function ActivityLog() {
     <AppLayout>
       <PageHeader title="Actividad" description="Historial de acciones del sistema" />
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="grid grid-cols-1 gap-2 mb-4 sm:flex sm:flex-wrap">
         <Select value={entityFilter} onValueChange={setEntityFilter}>
-          <SelectTrigger className="w-[150px] h-9 text-sm">
+          <SelectTrigger className="w-full h-11 text-sm sm:h-9 sm:w-[150px]">
             <SelectValue placeholder="Entidad" />
           </SelectTrigger>
           <SelectContent>
@@ -61,7 +56,7 @@ export default function ActivityLog() {
           </SelectContent>
         </Select>
         <Select value={actionFilter} onValueChange={setActionFilter}>
-          <SelectTrigger className="w-[200px] h-9 text-sm">
+          <SelectTrigger className="w-full h-11 text-sm sm:h-9 sm:w-[200px]">
             <SelectValue placeholder="Acción" />
           </SelectTrigger>
           <SelectContent>
@@ -75,7 +70,7 @@ export default function ActivityLog() {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="w-[160px] h-9 text-sm"
+          className="w-full h-11 text-sm sm:h-9 sm:w-[160px]"
         />
       </div>
 
@@ -90,7 +85,7 @@ export default function ActivityLog() {
                   <Icon className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{entry.description}</p>
+                  <p className="text-sm break-words">{entry.description}</p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-xs text-muted-foreground tabular-nums">{timeAgo(entry.created_at)}</span>
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">{ENTITY_TYPES[entry.entity_type] || entry.entity_type}</Badge>

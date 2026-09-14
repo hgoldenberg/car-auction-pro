@@ -63,7 +63,7 @@ function SortableItem({
       {/* Drag handle */}
       <button
         type="button"
-        className="absolute top-1 right-1 h-7 w-7 flex items-center justify-center rounded bg-black/50 text-white cursor-grab active:cursor-grabbing"
+        className="absolute top-1 right-1 h-11 w-11 flex items-center justify-center rounded bg-foreground/60 text-background cursor-grab active:cursor-grabbing sm:h-9 sm:w-9"
         {...attributes}
         {...listeners}
       >
@@ -77,7 +77,7 @@ function SortableItem({
             type="button"
             size="icon"
             variant="secondary"
-            className="h-8 w-8 sm:h-7 sm:w-7"
+            className="h-11 w-11 sm:h-9 sm:w-9"
             onClick={() => onSetMain(img.id)}
           >
             <Star className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -87,7 +87,7 @@ function SortableItem({
           type="button"
           size="icon"
           variant="destructive"
-          className="h-8 w-8 sm:h-7 sm:w-7"
+          className="h-11 w-11 sm:h-9 sm:w-9"
           onClick={() => onDelete(img)}
         >
           <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5" />

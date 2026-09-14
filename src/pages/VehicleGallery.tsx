@@ -1,11 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
 import { ChevronLeft, ChevronRight, Camera, X, ZoomIn } from 'lucide-react';
 import { DemoBadge } from '@/components/DemoBadge';
+import { demoAuctionById, demoImagesForVehicle } from '@/lib/demo-data';
 
 export default function VehicleGallery() {
   const { auctionId } = useParams();
@@ -17,41 +16,9 @@ export default function VehicleGallery() {
   const panRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, isPanning: false });
   const touchStartX = useRef(0);
 
-  // Record gallery view once on mount
-  const viewRecorded = useRef(false);
-  useEffect(() => {
-    if (!auctionId || viewRecorded.current) return;
-    viewRecorded.current = true;
-    supabase.from('gallery_views').insert({
-      auction_id: auctionId,
-      user_agent: navigator.userAgent,
-      referrer: document.referrer || null,
-    } as any).then(() => {});
-  }, [auctionId]);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['gallery', auctionId],
-    queryFn: async () => {
-      const { data: auction } = await supabase
-        .from('auctions')
-        .select('id, title, starting_price, current_high_bid, status, vehicles(id, make, model, year, trim, color, km)')
-        .eq('id', auctionId!)
-        .single();
-      if (!auction) return null;
-
-      const vehicle = (auction as any).vehicles;
-      if (!vehicle) return null;
-
-      const { data: images } = await supabase
-        .from('vehicle_images')
-        .select('id, storage_path, is_main, display_order')
-        .eq('vehicle_id', vehicle.id)
-        .order('is_main', { ascending: false })
-        .order('display_order');
-
-      return { auction, vehicle, images: images || [] };
-    },
-  });
+  const auction = demoAuctionById(auctionId);
+  const vehicle = auction?.vehicles;
+  const data = auction && vehicle ? { auction, vehicle, images: demoImagesForVehicle(vehicle.id) } : null;
 
   const resetZoom = useCallback(() => {
     setScale(1);
@@ -134,14 +101,6 @@ export default function VehicleGallery() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-pulse text-white/50 text-sm">Cargando galería...</div>
-      </div>
-    );
-  }
-
   if (!data || data.images.length === 0) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white/70 p-6">
@@ -165,7 +124,7 @@ export default function VehicleGallery() {
         {/* Fullscreen header */}
         <div className="flex items-center justify-between px-4 py-3 shrink-0 z-10">
           <span className="text-xs text-white/50 tabular-nums">{currentIndex + 1} / {images.length}</span>
-          <button onClick={closeFullscreen} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
+          <button aria-label="Cerrar galería" onClick={closeFullscreen} className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
             <X className="h-5 w-5 text-white" />
           </button>
         </div>
@@ -206,8 +165,10 @@ export default function VehicleGallery() {
         {images.length > 1 && (
           <div className="flex items-center justify-center gap-1.5 py-3 shrink-0">
             {images.map((_, i) => (
-              <button key={i} onClick={() => { setCurrentIndex(i); resetZoom(); }}
-                className={`w-2 h-2 rounded-full transition-all ${i === currentIndex ? 'bg-white w-4' : 'bg-white/30'}`} />
+              <button key={i} aria-label={`Ver foto ${i + 1}`} onClick={() => { setCurrentIndex(i); resetZoom(); }}
+                className="h-11 w-11 flex items-center justify-center">
+                <span className={`h-2 rounded-full transition-all ${i === currentIndex ? 'bg-primary-foreground w-4' : 'bg-primary-foreground/30 w-2'}`} />
+              </button>
             ))}
           </div>
         )}
@@ -276,15 +237,14 @@ export default function VehicleGallery() {
 
       {/* Dot indicators */}
       {images.length > 1 && (
-        <div className="flex items-center justify-center gap-1.5 py-2 shrink-0">
+        <div className="flex items-center justify-center shrink-0">
           {images.map((_, i) => (
             <button
               key={i}
+              aria-label={`Ver foto ${i + 1}`}
               onClick={() => setCurrentIndex(i)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                i === currentIndex ? 'bg-white w-4' : 'bg-white/30'
-              }`}
-            />
+              className="h-11 w-11 flex items-center justify-center"
+            ><span className={`h-2 rounded-full transition-all ${i === currentIndex ? 'bg-primary-foreground w-4' : 'bg-primary-foreground/30 w-2'}`} /></button>
           ))}
         </div>
       )}
@@ -326,7 +286,7 @@ export default function VehicleGallery() {
         {auction.status === 'active' && (
           <a
             href={bidLink}
-            className="block w-full text-center py-2.5 rounded-lg bg-[#00d4aa] hover:bg-[#00c49a] text-[#1a1a2e] text-sm font-bold transition"
+            className="block w-full text-center py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-bold transition"
           >
             💰 Ofertar
           </a>
