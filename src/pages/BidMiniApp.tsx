@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
-import { Shield, CheckCircle2, AlertCircle, Loader2, Zap } from 'lucide-react';
+import { Shield, CheckCircle2, AlertCircle, Zap } from 'lucide-react';
 import { DemoBadge } from '@/components/DemoBadge';
+import { demoAuctionById, demoImagesForVehicle } from '@/lib/demo-data';
 
 const MIN_BID_INCREMENT = 50000;
 
@@ -29,34 +28,13 @@ export default function BidMiniApp() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['bid-miniapp', auctionId],
-    queryFn: async () => {
-      const { data: auction } = await supabase
-        .from('auctions')
-        .select('id, title, starting_price, current_high_bid, bid_count, status, end_date, vehicles(id, make, model, year, trim, color, km)')
-        .eq('id', auctionId!)
-        .single();
-      if (!auction) return null;
-
-      const vehicle = (auction as any).vehicles;
-      if (!vehicle) return null;
-
-      const { data: mainImg } = await supabase
-        .from('vehicle_images')
-        .select('storage_path')
-        .eq('vehicle_id', vehicle.id)
-        .eq('is_main', true)
-        .single();
-
-      const photoUrl = mainImg ? getVehicleImageUrl(mainImg.storage_path) : null;
-
-      const currentHigh = auction.current_high_bid || 0;
-      const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction.starting_price || 0);
-
-      return { auction, vehicle, photoUrl, minBid };
-    },
-  });
+  const auction = demoAuctionById(auctionId);
+  const vehicle = auction?.vehicles;
+  const mainImg = vehicle ? demoImagesForVehicle(vehicle.id)[0] : null;
+  const photoUrl = mainImg ? getVehicleImageUrl(mainImg.storage_path) : null;
+  const currentHigh = auction?.current_high_bid || 0;
+  const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction?.starting_price || 0);
+  const data = auction && vehicle ? { auction, vehicle, photoUrl, minBid } : null;
 
   const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
 
@@ -76,18 +54,9 @@ export default function BidMiniApp() {
     setResult(null);
 
     try {
-      const { data: resp, error } = await supabase.functions.invoke('submit-bid', {
-        body: { auction_id: auctionId, amount: parsedAmount, bidder_name: bidderName.trim() },
-      });
-
-      if (error) throw new Error(error.message);
-      if (resp?.error) {
-        setResult({ success: false, message: humanizeError(resp.error) });
-      } else {
-        setResult({ success: true, message: `¡Oferta de ${formatCurrency(parsedAmount)} registrada! Sos el nuevo líder.` });
-        setBidInput('');
-        refetch();
-      }
+      await new Promise(resolve => window.setTimeout(resolve, 450));
+      setResult({ success: true, message: `¡Oferta demo de ${formatCurrency(parsedAmount)} registrada! Sos el nuevo líder.` });
+      setBidInput('');
     } catch (e: any) {
       setResult({ success: false, message: humanizeError(e.message || '') });
     } finally {
@@ -111,14 +80,6 @@ export default function BidMiniApp() {
   // Format display value for live feedback only (input stays as raw digits)
   const displayAmount = bidInput;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center">
-        <Loader2 className="h-6 w-6 text-white/50 animate-spin" />
-      </div>
-    );
-  }
-
   if (!data) {
     return (
       <div className="min-h-screen bg-[#1a1a2e] flex flex-col items-center justify-center text-white/70 p-6 text-center">
@@ -137,7 +98,7 @@ export default function BidMiniApp() {
   const canSubmit = !submitting && bidderName.trim().length > 0 && parsedAmount >= minBid;
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e] text-white flex flex-col">
+    <div className="min-h-screen bg-foreground text-background flex flex-col">
       <div className="px-4 pt-3">
         <DemoBadge variant="dark" />
       </div>
@@ -151,7 +112,7 @@ export default function BidMiniApp() {
             Sin foto
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1a2e] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
           <h1 className="text-lg font-bold leading-tight">{vehicleTitle}</h1>
           {vehicle.trim && <p className="text-xs text-white/60 mt-0.5">{vehicle.trim}</p>}
@@ -163,7 +124,7 @@ export default function BidMiniApp() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-white/40">Oferta líder</p>
-            <p className="text-xl font-bold tabular-nums text-[#00d4aa]">
+            <p className="text-xl font-bold tabular-nums text-primary">
               {(auction.current_high_bid || 0) > 0 ? formatCurrency(auction.current_high_bid) : 'Sin ofertas'}
             </p>
           </div>
@@ -185,7 +146,7 @@ export default function BidMiniApp() {
         <div className="flex-1 px-4 pb-6 flex flex-col">
           {/* Privacy badge */}
           <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 mb-4">
-            <Shield className="h-4 w-4 text-[#00d4aa] shrink-0" />
+            <Shield className="h-4 w-4 text-primary shrink-0" />
             <p className="text-[11px] text-white/60">Tu oferta es privada. El grupo no verá tu identidad.</p>
           </div>
 
@@ -205,7 +166,7 @@ export default function BidMiniApp() {
             <button
               type="button"
               onClick={handleFillMin}
-              className="flex items-center gap-1 text-[11px] text-[#00d4aa] hover:text-[#00e4ba] transition font-medium"
+              className="flex min-h-11 items-center gap-1 text-[11px] text-primary transition font-medium"
             >
               <Zap className="h-3 w-3" />
               Ofertar mínimo
@@ -216,7 +177,7 @@ export default function BidMiniApp() {
             inputMode="numeric"
             value={displayAmount}
             onChange={(e) => handleAmountChange(e.target.value)}
-            className={`w-full h-12 rounded-lg bg-white/10 border px-3 text-lg font-bold tabular-nums text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#00d4aa]/50 focus:border-[#00d4aa]/50 mb-1 transition ${
+            className={`w-full h-12 rounded-lg bg-background/10 border px-3 text-lg font-bold tabular-nums text-background placeholder:text-background/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 mb-1 transition ${
               isBelowMin ? 'border-red-400/50' : 'border-white/10'
             }`}
             placeholder={formatCurrency(minBid)}
@@ -228,7 +189,7 @@ export default function BidMiniApp() {
               Incremento mínimo: {formatCurrency(MIN_BID_INCREMENT)}
             </p>
             {parsedAmount > 0 && (
-              <p className={`text-[11px] font-medium tabular-nums ${isBelowMin ? 'text-red-400' : 'text-[#00d4aa]'}`}>
+              <p className={`text-[11px] font-medium tabular-nums ${isBelowMin ? 'text-destructive' : 'text-primary'}`}>
                 {formattedInput}
                 {isBelowMin && ' — no alcanza'}
               </p>
@@ -249,11 +210,11 @@ export default function BidMiniApp() {
           <button
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="w-full h-12 rounded-lg bg-[#00d4aa] hover:bg-[#00c49a] text-[#1a1a2e] font-bold text-base transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
+            className="w-full h-12 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
           >
             {submitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Enviando...
               </>
             ) : (

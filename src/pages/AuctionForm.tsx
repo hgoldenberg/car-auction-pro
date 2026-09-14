@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { AUCTION_STATUS_LABELS } from '@/lib/types';
 import type { AuctionStatus } from '@/lib/types';
 import { CurrencyInput } from '@/components/CurrencyInput';
+import { demoAuctionById, demoVehicles } from '@/lib/demo-data';
 
 export default function AuctionForm() {
   const { id } = useParams();
@@ -27,8 +28,7 @@ export default function AuctionForm() {
   const { data: vehicles } = useQuery({
     queryKey: ['vehicles-select'],
     queryFn: async () => {
-      const { data } = await supabase.from('vehicles').select('id, make, model, year, trim, status');
-      return data || [];
+      return demoVehicles;
     },
   });
 
@@ -36,8 +36,7 @@ export default function AuctionForm() {
     queryKey: ['auction', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data } = await supabase.from('auctions').select('*').eq('id', id).single();
-      return data;
+      return demoAuctionById(id) || null;
     },
     enabled: isEdit,
   });
@@ -55,21 +54,7 @@ export default function AuctionForm() {
   }, [auction]);
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        ...form,
-        starting_price: form.starting_price === '' ? 0 : form.starting_price,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-      };
-      if (isEdit) {
-        const { error } = await supabase.from('auctions').update(payload).eq('id', id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('auctions').insert(payload);
-        if (error) throw error;
-      }
-    },
+    mutationFn: async () => form,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       toast.success(isEdit ? 'Subasta actualizada' : 'Subasta creada');
