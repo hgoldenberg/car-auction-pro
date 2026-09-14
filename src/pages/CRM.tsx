@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoBids, demoGroups, demoLeads } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -24,11 +24,7 @@ export default function CRM() {
   const { data: leads, isLoading } = useQuery({
     queryKey: ['leads-enriched'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('leads')
-        .select('*, telegram_groups(name)')
-        .order('created_at', { ascending: false });
-      return data || [];
+      return demoLeads;
     },
   });
 
@@ -36,10 +32,7 @@ export default function CRM() {
   const { data: latestBids } = useQuery({
     queryKey: ['leads-latest-bids'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('bids')
-        .select('lead_id, amount, auction_id, auctions(title, vehicles(make, model, year))')
-        .order('created_at', { ascending: false });
+      const data = demoBids.slice().sort((a,b) => b.created_at.localeCompare(a.created_at));
       // Group by lead_id, take first (latest)
       const map: Record<string, any> = {};
       data?.forEach((bid) => {
@@ -52,8 +45,7 @@ export default function CRM() {
   const { data: groups } = useQuery({
     queryKey: ['telegram-groups-select'],
     queryFn: async () => {
-      const { data } = await supabase.from('telegram_groups').select('id, name');
-      return data || [];
+      return demoGroups;
     },
   });
 
@@ -64,9 +56,9 @@ export default function CRM() {
   });
 
   const filters = (
-    <div className="flex flex-wrap gap-2 mb-4">
+    <div className="grid grid-cols-1 gap-2 mb-4 sm:flex sm:flex-wrap">
       <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className="w-[160px] h-9 text-sm">
+        <SelectTrigger className="w-full h-11 text-sm sm:h-9 sm:w-[160px]">
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
@@ -77,7 +69,7 @@ export default function CRM() {
         </SelectContent>
       </Select>
       <Select value={groupFilter} onValueChange={setGroupFilter}>
-        <SelectTrigger className="w-[180px] h-9 text-sm">
+        <SelectTrigger className="w-full h-11 text-sm sm:h-9 sm:w-[180px]">
           <SelectValue placeholder="Grupo origen" />
         </SelectTrigger>
         <SelectContent>
@@ -179,12 +171,12 @@ export default function CRM() {
 
         <TabsContent value="pipeline" className="overflow-visible">
           {filters}
-          <div className="overflow-x-auto -mx-4 px-4 pb-4 overscroll-x-contain touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex gap-3 snap-x snap-mandatory" style={{ minWidth: LEAD_PIPELINE_COLUMNS.length * 200 }}>
+          <div className={isMobile ? 'space-y-4' : 'overflow-x-auto pb-4 overscroll-x-contain touch-pan-x'}>
+            <div className={isMobile ? 'space-y-4' : 'flex gap-3'} style={isMobile ? undefined : { minWidth: LEAD_PIPELINE_COLUMNS.length * 200 }}>
               {LEAD_PIPELINE_COLUMNS.map((col) => {
                 const colLeads = filtered?.filter((l) => l.status === col.status) || [];
                 return (
-                  <div key={col.status} className="flex-1 min-w-[160px] snap-start">
+                  <div key={col.status} className={isMobile ? 'w-full' : 'flex-1 min-w-[160px] snap-start'}>
                     <div className="flex items-center gap-2 mb-2 px-1 sticky top-0">
                       <StatusBadge status={col.status as LeadStatus} />
                       <span className="text-xs text-muted-foreground tabular-nums">({colLeads.length})</span>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoGroups } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -29,8 +29,7 @@ export default function TelegramGroups() {
   const { data: groups, isLoading } = useQuery({
     queryKey: ['telegram-groups'],
     queryFn: async () => {
-      const { data } = await supabase.from('telegram_groups').select('*').order('created_at', { ascending: false });
-      return data || [];
+      return demoGroups;
     },
   });
 
@@ -49,7 +48,7 @@ export default function TelegramGroups() {
     <AppLayout>
       <div className="flex items-center justify-between gap-3 mb-1">
         <PageHeader title="Grupos Telegram" description="Grupos configurados y feed demo de publicaciones" />
-        <Button size="sm" className="rounded-lg gap-1.5 shrink-0" onClick={() => setShowCreateDialog(true)}>
+        <Button size="icon" aria-label="Nuevo grupo" className="h-11 w-11 rounded-lg shrink-0 sm:w-auto sm:px-3" onClick={() => setShowCreateDialog(true)}>
           <Plus className="h-4 w-4" /> {!isMobile && 'Nuevo grupo'}
         </Button>
       </div>
@@ -81,7 +80,7 @@ export default function TelegramGroups() {
                         className={g.is_active ? 'bg-status-success-bg text-status-success border-0' : ''}>
                         {g.is_active ? 'Activo' : 'Inactivo'}
                       </Badge>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setEditingGroup(g); }}>
+                      <Button variant="ghost" size="icon" aria-label={`Editar ${g.name}`} className="h-11 w-11" onClick={(e) => { e.stopPropagation(); setEditingGroup(g); }}>
                         <Settings className="h-3.5 w-3.5" />
                       </Button>
                     </div>

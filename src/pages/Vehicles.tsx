@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoVehicles } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -37,14 +37,7 @@ export default function Vehicles() {
   const { data: vehicles, isLoading } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('vehicles')
-        .select('*, vehicle_images(storage_path, is_main)')
-        .order('created_at', { ascending: false });
-      return (data || []).map((v: any) => {
-        const mainImg = v.vehicle_images?.find((i: any) => i.is_main) || v.vehicle_images?.[0];
-        return { ...v, _thumb: mainImg?.storage_path || null };
-      });
+      return demoVehicles;
     },
   });
 

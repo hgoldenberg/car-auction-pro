@@ -14,7 +14,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="px-4 pt-3">
           <DemoBadge />
         </div>
-        <main className="flex-1 px-4 pt-3 pb-24 overflow-auto">
+        <main className="flex-1 min-w-0 px-4 pt-3 pb-24 overflow-x-hidden overflow-y-auto">
           {children}
         </main>
         <MobileBottomNav />

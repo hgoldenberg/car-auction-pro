@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { demoAuctions } from '@/lib/demo-data';
 import { AppLayout } from '@/components/AppLayout';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -19,11 +19,7 @@ export default function Auctions() {
   const { data: auctions, isLoading } = useQuery({
     queryKey: ['auctions'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('auctions')
-        .select('*, vehicles(make, model, year, trim)')
-        .order('created_at', { ascending: false });
-      return data || [];
+      return demoAuctions;
     },
   });
 
