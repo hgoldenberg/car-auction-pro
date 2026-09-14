@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { formatCurrency } from '@/lib/formatters';
@@ -16,9 +16,9 @@ export default function VehicleGallery() {
   const panRef = useRef({ startX: 0, startY: 0, lastX: 0, lastY: 0, isPanning: false });
   const touchStartX = useRef(0);
 
-  const auction = demoAuctionById(auctionId);
-  const vehicle = auction?.vehicles;
-  const data = auction && vehicle ? { auction, vehicle, images: demoImagesForVehicle(vehicle.id) } : null;
+  const demoAuction = demoAuctionById(auctionId);
+  const demoVehicle = demoAuction?.vehicles;
+  const data = demoAuction && demoVehicle ? { auction: demoAuction, vehicle: demoVehicle, images: demoImagesForVehicle(demoVehicle.id) } : null;
 
   const resetZoom = useCallback(() => {
     setScale(1);

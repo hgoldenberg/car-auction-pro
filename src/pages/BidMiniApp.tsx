@@ -28,13 +28,13 @@ export default function BidMiniApp() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const auction = demoAuctionById(auctionId);
-  const vehicle = auction?.vehicles;
-  const mainImg = vehicle ? demoImagesForVehicle(vehicle.id)[0] : null;
+  const demoAuction = demoAuctionById(auctionId);
+  const demoVehicle = demoAuction?.vehicles;
+  const mainImg = demoVehicle ? demoImagesForVehicle(demoVehicle.id)[0] : null;
   const photoUrl = mainImg ? getVehicleImageUrl(mainImg.storage_path) : null;
-  const currentHigh = auction?.current_high_bid || 0;
-  const minBid = Math.max(currentHigh + MIN_BID_INCREMENT, auction?.starting_price || 0);
-  const data = auction && vehicle ? { auction, vehicle, photoUrl, minBid } : null;
+  const currentHigh = demoAuction?.current_high_bid || 0;
+  const minimumBid = Math.max(currentHigh + MIN_BID_INCREMENT, demoAuction?.starting_price || 0);
+  const data = demoAuction && demoVehicle ? { auction: demoAuction, vehicle: demoVehicle, photoUrl, minBid: minimumBid } : null;
 
   const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
 
