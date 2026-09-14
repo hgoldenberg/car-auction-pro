@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { TelegramMessage } from './TelegramMessage';
 import { formatCurrency } from '@/lib/formatters';
-import { submitBid } from '@/lib/auction-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Send, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { demoAuctionById, demoLeads } from '@/lib/demo-data';
 
 interface ChatMessage {
   id: string;
@@ -35,20 +34,14 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
   const { data: auction } = useQuery({
     queryKey: ['chat-auction', auctionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('auctions')
-        .select('*, vehicles(make, model, year, trim, km, color)')
-        .eq('id', auctionId)
-        .single();
-      return data;
+      return demoAuctionById(auctionId) || null;
     },
   });
 
   const { data: leads } = useQuery({
     queryKey: ['chat-leads'],
     queryFn: async () => {
-      const { data } = await supabase.from('leads').select('id, full_name, telegram_username').order('full_name');
-      return data || [];
+      return demoLeads;
     },
   });
 
@@ -88,7 +81,7 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
 
   const bidMutation = useMutation({
     mutationFn: async (amount: number) => {
-      return submitBid(auctionId, selectedLeadId, amount);
+      return { auctionId, selectedLeadId, amount };
     },
     onSuccess: (_data, amount) => {
       addBotMessage(`✅ ¡Tu oferta de ${formatCurrency(amount)} fue registrada correctamente!\n\n🏆 Sos el nuevo líder de la subasta.\n\nTe avisaremos si alguien supera tu oferta.`);
@@ -152,9 +145,9 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-white/80 hover:text-white">
+          <Button variant="ghost" size="icon" aria-label="Cerrar chat" onClick={onClose} className="h-11 w-11 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -180,7 +173,7 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
                   key={lead.id}
                   size="sm"
                   variant="outline"
-                  className="text-xs h-7"
+                   className="h-11 text-xs sm:h-9"
                   onClick={() => handleSelectLead(lead.id, lead.full_name)}
                 >
                   {lead.full_name}
@@ -199,11 +192,11 @@ export function TelegramBotChat({ auctionId, auctionTitle, onClose }: TelegramBo
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder={awaitingLead ? 'Seleccioná un lead arriba...' : 'Escribí tu oferta...'}
           disabled={awaitingLead || bidMutation.isPending}
-          className="h-9 text-sm bg-background"
+          className="h-11 text-sm bg-background"
         />
         <Button
           size="icon"
-          className="h-9 w-9 bg-telegram hover:bg-telegram/90 shrink-0"
+          className="h-11 w-11 bg-telegram hover:bg-telegram/90 shrink-0"
           onClick={handleSend}
           disabled={awaitingLead || bidMutation.isPending || !input.trim()}
         >

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { TelegramMessage } from './TelegramMessage';
 import { formatCurrency, formatDateTime, timeAgo } from '@/lib/formatters';
 
 import { Bot, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getVehicleImageUrl } from '@/hooks/use-vehicle-images';
+import { demoBidsForAuction, demoImagesForVehicle, demoPublications } from '@/lib/demo-data';
 
 interface TelegramGroupFeedProps {
   groupId?: string;
@@ -18,17 +18,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
   const { data: publications } = useQuery({
     queryKey: ['feed-publications', groupId, auctionId],
     queryFn: async () => {
-      let q = supabase
-        .from('auction_group_publications')
-        .select('*, telegram_groups(name), auctions(id, title, status, starting_price, current_high_bid, bid_count, end_date, vehicle_id, vehicles(make, model, year, trim, color, km))')
-        .eq('status', 'posted')
-        .order('published_at', { ascending: true });
-
-      if (groupId) q = q.eq('group_id', groupId);
-      if (auctionId) q = q.eq('auction_id', auctionId);
-
-      const { data } = await q;
-      return data || [];
+      return demoPublications.filter(p => (!groupId || p.group_id === groupId) && (!auctionId || p.auction_id === auctionId));
     },
   });
 
@@ -36,12 +26,7 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     queryKey: ['feed-bids', auctionId],
     enabled: !!auctionId,
     queryFn: async () => {
-      const { data } = await supabase
-        .from('bids')
-        .select('*, leads(full_name)')
-        .eq('auction_id', auctionId!)
-        .order('created_at', { ascending: true });
-      return data || [];
+      return demoBidsForAuction(auctionId).sort((a,b) => a.created_at.localeCompare(b.created_at));
     },
   });
 
@@ -54,14 +39,10 @@ export function TelegramGroupFeed({ groupId, auctionId, onBidClick, maxHeight = 
     queryKey: ['feed-vehicle-images', vehicleIds.join(',')],
     enabled: vehicleIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase
-        .from('vehicle_images')
-        .select('vehicle_id, storage_path, is_main')
-        .in('vehicle_id', vehicleIds)
-        .order('is_main', { ascending: false });
       const map: Record<string, string> = {};
-      (data || []).forEach((img: any) => {
-        if (!map[img.vehicle_id]) map[img.vehicle_id] = img.storage_path;
+      vehicleIds.forEach(vehicleId => {
+        const img = demoImagesForVehicle(vehicleId)[0];
+        if (img) map[vehicleId] = img.storage_path;
       });
       return map;
     },
