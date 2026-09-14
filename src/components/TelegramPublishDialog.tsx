@@ -116,7 +116,7 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
             {realGroups && realGroups.length > 0 && (
               <div className="space-y-2 py-2">
                 {realGroups.map((g) => {
-                  const alreadyPublished = publishedGroupIds.has(g.id);
+          const alreadyPublished = publishedGroupIds.has(g.id);
                   return (
                     <label
                       key={g.id}

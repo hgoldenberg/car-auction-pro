@@ -31,10 +31,10 @@ export default function BidMiniApp() {
   const demoAuction = demoAuctionById(auctionId);
   const demoVehicle = demoAuction?.vehicles;
   const mainImg = demoVehicle ? demoImagesForVehicle(demoVehicle.id)[0] : null;
-  const photoUrl = mainImg ? getVehicleImageUrl(mainImg.storage_path) : null;
+  const demoPhotoUrl = mainImg ? getVehicleImageUrl(mainImg.storage_path) : null;
   const currentHigh = demoAuction?.current_high_bid || 0;
   const minimumBid = Math.max(currentHigh + MIN_BID_INCREMENT, demoAuction?.starting_price || 0);
-  const data = demoAuction && demoVehicle ? { auction: demoAuction, vehicle: demoVehicle, photoUrl, minBid: minimumBid } : null;
+  const data = demoAuction && demoVehicle ? { auction: demoAuction, vehicle: demoVehicle, photoUrl: demoPhotoUrl, minBid: minimumBid } : null;
 
   const parsedAmount = parseInt(bidInput.replace(/\D/g, ''), 10) || 0;
 
@@ -82,7 +82,7 @@ export default function BidMiniApp() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-[#1a1a2e] flex flex-col items-center justify-center text-white/70 p-6 text-center">
+      <div className="min-h-screen bg-foreground flex flex-col items-center justify-center text-background/70 p-6 text-center">
         <AlertCircle className="h-10 w-10 mb-3 opacity-50" />
         <p className="text-base font-medium">Subasta no disponible</p>
         <p className="text-sm mt-1 text-white/40">Esta subasta no existe o ya finalizó.</p>
