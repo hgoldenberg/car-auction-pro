@@ -17,13 +17,12 @@ import { DollarSign, Clock, Users, Send, Edit, Play, Pause, XCircle, Award, Plus
 import { TelegramPublishDialog } from '@/components/TelegramPublishDialog';
 import { ACTIVITY_ACTIONS } from '@/lib/types';
 import type { AuctionStatus, BidStatus, PublicationStatus } from '@/lib/types';
-import { activateAuction, pauseAuction, closeAuction, awardAuction, submitBid } from '@/lib/auction-actions';
 import { TelegramGroupFeed } from '@/components/telegram/TelegramGroupFeed';
 import { TelegramBotChat } from '@/components/telegram/TelegramBotChat';
 import { useVehicleImages, getVehicleImageUrl } from '@/hooks/use-vehicle-images';
 import { toast } from 'sonner';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { demoActivityFor, demoAuctionById, demoBidsForAuction, demoGroups, demoPublicationsForAuction, demoViewsForAuction } from '@/lib/demo-data';
+import { demoActivityFor, demoAuctionById, demoBidsForAuction, demoLeads, demoPublicationsForAuction, demoViewsForAuction } from '@/lib/demo-data';
 
 export default function AuctionDetail() {
   const { id } = useParams();
@@ -103,7 +102,7 @@ export default function AuctionDetail() {
   const { data: leads } = useQuery({
     queryKey: ['leads-for-bid'],
     queryFn: async () => {
-      return demoGroups.length ? (await import('@/lib/demo-data')).demoLeads : [];
+      return demoLeads;
     },
   });
 

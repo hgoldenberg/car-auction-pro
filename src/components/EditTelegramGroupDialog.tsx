@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,44 +55,7 @@ export function EditTelegramGroupDialog({ group, open, onClose }: Props) {
       if (nameError) throw new Error('El nombre es obligatorio');
       if (chatIdError) throw new Error('El Chat ID es obligatorio para grupos reales');
 
-      const payload = {
-        name: name.trim(),
-        chat_id: chatId.trim() || null,
-        description: description.trim() || null,
-        is_real_group: isReal,
-        is_active: isActive,
-        notes: notes.trim() || null,
-      };
-
-      if (isCreate) {
-        // Check duplicate chat_id
-        if (payload.chat_id) {
-          const { data: existing } = await supabase
-            .from('telegram_groups')
-            .select('id')
-            .eq('chat_id', payload.chat_id)
-            .maybeSingle();
-          if (existing) throw new Error('Ya existe un grupo con ese Chat ID');
-        }
-        const { error } = await supabase.from('telegram_groups').insert(payload);
-        if (error) throw error;
-      } else {
-        // Check duplicate chat_id (excluding self)
-        if (payload.chat_id) {
-          const { data: existing } = await supabase
-            .from('telegram_groups')
-            .select('id')
-            .eq('chat_id', payload.chat_id)
-            .neq('id', group!.id!)
-            .maybeSingle();
-          if (existing) throw new Error('Ya existe un grupo con ese Chat ID');
-        }
-        const { error } = await supabase
-          .from('telegram_groups')
-          .update(payload)
-          .eq('id', group!.id!);
-        if (error) throw error;
-      }
+      return { name, chatId, description, isReal, isActive, notes };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['telegram-groups'] });

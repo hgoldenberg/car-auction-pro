@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { publishToTelegramReal } from '@/lib/telegram-publish';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Send, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { demoGroups, demoPublications } from '@/lib/demo-data';
 
 interface Props {
   auctionId: string;
@@ -24,13 +23,7 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
   const { data: realGroups, isLoading } = useQuery({
     queryKey: ['real-telegram-groups'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('telegram_groups')
-        .select('*')
-        .eq('is_active', true)
-        .eq('is_real_group', true)
-        .order('name');
-      return data || [];
+      return demoGroups.filter(group => group.is_active);
     },
     enabled: open,
   });
@@ -39,12 +32,7 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
   const { data: existingPubs } = useQuery({
     queryKey: ['existing-real-pubs', auctionId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('auction_group_publications')
-        .select('group_id, status, publication_type')
-        .eq('auction_id', auctionId)
-        .eq('publication_type', 'real');
-      return data || [];
+      return demoPublications.filter(publication => publication.auction_id === auctionId);
     },
     enabled: open,
   });
@@ -52,7 +40,11 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
   const publishedGroupIds = new Set(existingPubs?.filter(p => p.status === 'posted').map(p => p.group_id) || []);
 
   const publishMutation = useMutation({
-    mutationFn: () => publishToTelegramReal(auctionId, selectedIds),
+    mutationFn: async () => ({
+      results: selectedIds.map(id => ({ group_name: demoGroups.find(group => group.id === id)?.name || 'Grupo demo', success: true })),
+      published: selectedIds.length,
+      failed: 0,
+    }),
     onSuccess: (data) => {
       setResults(data.results);
       if (data.published > 0) {
@@ -78,7 +70,7 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setResults(null); setSelectedIds([]); } }}>
       <DialogTrigger asChild>
-        <Button size="sm" className="rounded-lg gap-1.5 bg-telegram hover:bg-telegram/90 text-white" disabled={!canPublish}>
+        <Button size="sm" className="h-11 rounded-lg gap-1.5 bg-telegram hover:bg-telegram/90 text-primary-foreground sm:h-9" disabled={!canPublish}>
           <Send className="h-4 w-4" /> Publicar en Telegram
         </Button>
       </DialogTrigger>
@@ -88,7 +80,7 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
             <Send className="h-5 w-5 text-telegram" /> Publicar en Telegram
           </DialogTitle>
           <DialogDescription>
-            Seleccioná los grupos reales donde publicar "{auctionTitle}"
+            Seleccioná los grupos ficticios donde simular la publicación de “{auctionTitle}”
           </DialogDescription>
         </DialogHeader>
 
@@ -117,14 +109,14 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
 
             {!isLoading && (!realGroups || realGroups.length === 0) && (
               <p className="py-4 text-sm text-muted-foreground text-center">
-                No hay grupos reales configurados. Marcá un grupo como "real" y agregá su chat_id en la sección Grupos Telegram.
+                 No hay grupos demo configurados.
               </p>
             )}
 
             {realGroups && realGroups.length > 0 && (
               <div className="space-y-2 py-2">
                 {realGroups.map((g) => {
-                  const alreadyPublished = publishedGroupIds.has(g.id);
+          const alreadyPublished = publishedGroupIds.has(g.id);
                   return (
                     <label
                       key={g.id}
@@ -137,17 +129,13 @@ export function TelegramPublishDialog({ auctionId, auctionTitle, auctionStatus }
                       <Checkbox
                         checked={selectedIds.includes(g.id)}
                         onCheckedChange={() => toggle(g.id)}
-                        disabled={!g.chat_id}
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">{g.name}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{g.chat_id || 'Sin chat_id'}</p>
+                         <p className="text-xs text-muted-foreground">Simulación local sin envío externo</p>
                       </div>
                       {alreadyPublished && (
                         <Badge variant="outline" className="text-xs shrink-0 border-amber-400 text-amber-700">Republicar</Badge>
-                      )}
-                      {!g.chat_id && (
-                        <Badge variant="destructive" className="text-xs shrink-0">Sin ID</Badge>
                       )}
                     </label>
                   );
