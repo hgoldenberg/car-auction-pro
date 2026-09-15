@@ -8,6 +8,13 @@
       "when": 1789431783004,
       "tag": "0000_revoke_anon_access_sensitive_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789432101789,
+      "tag": "0001_revoke_anon_read_lead_and_internal_tables",
+      "breakpoints": true
     }
   ]
 }
